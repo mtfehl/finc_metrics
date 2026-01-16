@@ -1,0 +1,35 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Time Series Econometrics"
+  image: ts-metrics-image.png
+  page-navigation: true
+  back-to-top-navigation: true
+  navbar:
+    search: true
+    left:
+      - text: "Home"
+      - href: index.qmd
+      - text: "Class Notes"
+      - href:
+        - notes/01/intro.qmd
+        #- notes/02/placeholder.qmd
+      - text: "Problem Sets"
+      - href:
+        - problem_sets/HW_1_Transformations/01ps.qmd
+        #- problem_sets/HW_2_x/02ps.qmd
+      - text: "Projects"
+      - href:
+        #- projects/project_name/project_file.qmd
+      
+    
+
+format:
+  html:
+    theme:
+      dark: [darkly]#, dark-theme.scss]
+      light: [cosmo]#, light-theme.scss]
+    toc: true
+    

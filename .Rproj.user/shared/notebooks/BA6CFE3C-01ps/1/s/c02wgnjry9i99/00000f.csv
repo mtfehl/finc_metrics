@@ -1,0 +1,57 @@
+"0","for (i in packages){
+  if (!require(i, character.only = T)){
+    install.packages(i)
+    library(i, character.only = T)
+  } 
+  else
+    library(i, character.only = T)
+}
+"
+"2","WARNING: Rtools is required to build R packages but is not currently installed. Please download and install the appropriate version of Rtools before proceeding:
+
+https://cran.rstudio.com/bin/windows/Rtools/
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/4.5/zoo_1.8-15.zip'
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/4.5/xts_0.14.1.zip'
+"
+"1","package ‘zoo’ successfully unpacked and MD5 sums checked
+"
+"1","package ‘xts’ successfully unpacked and MD5 sums checked
+"
+"1","
+"
+"1",""
+"1","The downloaded binary packages are in
+	C:\Users\T14\AppData\Local\Temp\Rtmpcrp6vv\downloaded_packages"
+"1",""
+"1","
+"
+"2","WARNING: Rtools is required to build R packages but is not currently installed. Please download and install the appropriate version of Rtools before proceeding:
+
+https://cran.rstudio.com/bin/windows/Rtools/
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/4.5/BH_1.90.0-1.zip'
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/4.5/anytime_0.3.12.zip'
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/4.5/ellipsis_0.3.2.zip'
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/4.5/tsibble_1.1.6.zip'
+"
+"1","package ‘BH’ successfully unpacked and MD5 sums checked
+"
+"1","package ‘anytime’ successfully unpacked and MD5 sums checked
+"
+"1","package ‘ellipsis’ successfully unpacked and MD5 sums checked
+"
+"1","package ‘tsibble’ successfully unpacked and MD5 sums checked
+"
+"1","
+"
+"1",""
+"1","The downloaded binary packages are in
+	C:\Users\T14\AppData\Local\Temp\Rtmpcrp6vv\downloaded_packages"
+"1",""
+"1","
+"

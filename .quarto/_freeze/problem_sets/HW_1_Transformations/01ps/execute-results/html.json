@@ -1,0 +1,15 @@
+{
+  "hash": "a56722d4d410a47fc9ac1a5731ae722f",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Problem Set 01\"\ndescription: \"Transformation into Stationary Time Series\"\nformat: html\n---\n\n\n\n# Problem Set 1: trans\n\n\n::: {.cell}\n\n```{.r .cell-code}\nprint(\"test\")\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] \"test\"\n```\n\n\n:::\n:::\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
