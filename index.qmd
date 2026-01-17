@@ -1,9 +1,9 @@
 ---
-title: "Financial Econometrics"
+title: "Financial Econometrics: Class Sections"
 format: html
 listing:
   contents: notes
   sort: "date desc"
   type: grid
-  categories: true
+  categories: false
 ---

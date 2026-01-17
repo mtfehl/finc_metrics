@@ -33,6 +33,8 @@ website:
             href: index.qmd
           - text: "Networks: Concepts & Algorithms"
             href: https://mtfehl.github.io/networks/
+          - text: "Econometrics: Panel Data"
+            href: https://mtfehl.github.io/econometrics2/
       - text: "About Me"
         href: https://mtfehl.github.io/econ_portfolio/about.html
       - text: "CV"          

@@ -1,24 +1,5 @@
 [
   {
-    "objectID": "problem_sets/HW_1_Transformations/01ps.html",
-    "href": "problem_sets/HW_1_Transformations/01ps.html",
-    "title": "Problem Set 01",
-    "section": "",
-    "text": "Problem Set 1: trans\n\nprint(\"test\")\n\n[1] \"test\"",
-    "crumbs": [
-      "Home",
-      "Problem Sets",
-      "Problem Set 01"
-    ]
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Financial Econometrics",
-    "section": "",
-    "text": "Basics\n\n\nIntro to TS basics & stationarity transformations\n\n\n\n\n\n\nInvalid Date\n\n\n\n\n\n\nNo matching items"
-  },
-  {
     "objectID": "notes/01/intro.html",
     "href": "notes/01/intro.html",
     "title": "Basics",
@@ -28,6 +9,25 @@
       "Home",
       "Class Notes",
       "Basics"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Financial Econometrics: Class Sections",
+    "section": "",
+    "text": "Basics\n\n\nIntro to TS basics & stationarity transformations\n\n\n\n\n\n\nInvalid Date\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "problem_sets/HW_1_Transformations/01ps.html",
+    "href": "problem_sets/HW_1_Transformations/01ps.html",
+    "title": "Problem Set 01",
+    "section": "",
+    "text": "Problem Set 1: trans\n\nprint(\"test\")\n\n[1] \"test\"",
+    "crumbs": [
+      "Home",
+      "Problem Sets",
+      "Problem Set 01"
     ]
   }
 ]
