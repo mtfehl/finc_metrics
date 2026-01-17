@@ -6,3 +6,5 @@
 
 # ==== Quarto intermediate / cache files ====
 .quarto/
+/.quarto/
+**/*.quarto_ipynb

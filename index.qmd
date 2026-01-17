@@ -7,4 +7,3 @@ listing:
   type: grid
   categories: true
 ---
-
