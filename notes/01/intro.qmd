@@ -1,6 +1,20 @@
 ---
 title: "Basics"
+description: "Intro to TS basics & stationarity transformations"
 date: date-modified
 format: html
 ---
 
+# Intro
+
+Insert words here ! 
+
+```{r set_up, include=FALSE}
+# library stuff
+libs <- c("tidyverse",
+          "zoo")
+```
+
+```{r chunk1}
+
+```

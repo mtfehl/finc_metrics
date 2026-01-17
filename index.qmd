@@ -1,5 +1,10 @@
 ---
 title: "Financial Econometrics"
 format: html
+listing:
+  contents: notes
+  sort: "date desc"
+  type: grid
+  categories: true
 ---
 

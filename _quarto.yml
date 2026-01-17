@@ -4,6 +4,7 @@ project:
 
 website:
   title: "Time Series Econometrics"
+  site-url: "https://mtfehl.github.io/finc_metrics/"
   image: ts-metrics-image.png
   page-navigation: true
   back-to-top-navigation: true
