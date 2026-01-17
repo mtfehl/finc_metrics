@@ -1,5 +1,6 @@
 ---
-title: "intro"
+title: "Basics"
+date: date-modified
 format: html
 ---
 
