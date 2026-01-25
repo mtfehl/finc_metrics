@@ -1,5 +1,9 @@
 ---
 title: "Project: Example"
+author: "Michael Fehl"
+desc: " "
+date: 01-31-2026
+project: true
 format: html
 ---
 

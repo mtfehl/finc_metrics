@@ -1,13 +1,18 @@
 ---
 title: "Basics"
 description: "Intro to TS basics & stationarity transformations"
-date: date-modified
-format: html
+date: 01-15-2026
+class-notes: true
+format:
+  html:
+    page-layout: full
+image: "/images/stationary.png" 
+execute:
+  cache: true
 ---
 
 # Intro
 
-Insert words here ! 
 
 ```{r set_up, include=FALSE}
 # library stuff

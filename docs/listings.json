@@ -2,7 +2,9 @@
   {
     "listing": "/index.html",
     "items": [
-      "/notes/01/intro.html"
+      "/notes/01/intro.html",
+      "/problem_sets/HW_1_Transformations/01ps_final.html",
+      "/projects/Project01/project01.html"
     ]
   }
 ]

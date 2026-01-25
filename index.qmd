@@ -1,9 +1,57 @@
 ---
-title: "Financial Econometrics: Class Sections"
-format: html
+title: "Financial Econometrics: Time Series"
 listing:
-  contents: notes
-  sort: "date desc"
-  type: grid
-  categories: false
+  - id: class-notes
+    contents: 
+      - notes/01
+    include:
+      class-notes: true
+    type: grid
+    grid-columns: 3
+    fields: [image, title, reading-time, description]
+    
+  - id: problem-sets
+    contents: 
+      - problem_sets/HW_1_Transformations
+    include:
+      problem-set: true
+    type: grid
+    grid-columns: 3
+    sort: "date desc"
+    categories: true
+    sort-ui: false
+    filter-ui: false
+    fields: [image, title, reading-time, description]
+    
+  - id: projects
+    contents: 
+      - projects/Project01
+    include:
+      project: true
+    type: grid
+    grid-columns: 3
+    sort: "date desc"
+    categories: true
+    sort-ui: false
+    filter-ui: false
+    fields: [image, title, reading-time, description]
 ---
+
+## Class Notes
+
+::: {#class-notes}
+
+:::
+
+## Problem Sets
+
+::: {#problem-sets}
+
+:::
+
+
+## Projects
+
+::: {#projects}
+
+:::
