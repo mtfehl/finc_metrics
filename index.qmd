@@ -1,57 +1,28 @@
 ---
 title: "Financial Econometrics: Time Series"
-listing:
-  - id: class-notes
-    contents: 
-      - notes/01
-    include:
-      class-notes: true
-    type: grid
-    grid-columns: 3
-    fields: [image, title, reading-time, description]
-    
-  - id: problem-sets
-    contents: 
-      - problem_sets/HW_1_Transformations
-    include:
-      problem-set: true
-    type: grid
-    grid-columns: 3
-    sort: "date desc"
-    categories: true
-    sort-ui: false
-    filter-ui: false
-    fields: [image, title, reading-time, description]
-    
-  - id: projects
-    contents: 
-      - projects/Project01
-    include:
-      project: true
-    type: grid
-    grid-columns: 3
-    sort: "date desc"
-    categories: true
-    sort-ui: false
-    filter-ui: false
-    fields: [image, title, reading-time, description]
 ---
+```{mermaid}
+%%| fig-width: 10
+flowchart LR
+    A(Non-Stationary Data) --> B(Transform Variance)
+    B --> C(ARMA Models)
+    B --> D(GARCH Models)
+    P([Project 01])
 
-## Class Notes
+    %% Invisible link to nudge P near C/D without drawing a line
+    C ~~~ P
 
-::: {#class-notes}
+    click C "notes/02/models.html" "Go to ARMA Notes"
+    click D "problem_sets/HW_1_Transformations/01ps_final.html" "Go to GARCH Notes"
+    click A "notes/01/intro.html"
+    click P "projects/Project01/project01.html" "Go to Project 01"
 
-:::
+    %% Classes
+    class A,B,C,D nav-node
+    class P project-node
 
-## Problem Sets
+    %% STYLE THE LINES
+    linkStyle 1 stroke:#ff4d4d,stroke-width:2px;
+    linkStyle 2 stroke:#00cc66,stroke-width:2px;
+```
 
-::: {#problem-sets}
-
-:::
-
-
-## Projects
-
-::: {#projects}
-
-:::

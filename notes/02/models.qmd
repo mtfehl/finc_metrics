@@ -3,6 +3,7 @@ title: "Basic Linear Models"
 author: "Michael Fehl"
 date: 01-27-2026
 description: "AR(p), MA(q), & ARMA(p,q) Models"
+image: /images/AR_2.jpg
 class-notes: true
 format:
   html:

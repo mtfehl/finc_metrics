@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Financial Econometrics: Time Series – Michael Fehl</title>
+<title>unemploy_read – Michael Fehl</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,29 +20,64 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-628f598885c147727f3461b176aacc5f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-dark-16e990400b918c4979fa1e9001020cd5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-628f598885c147727f3461b176aacc5f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-dark-16e990400b918c4979fa1e9001020cd5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -71,9 +106,6 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
-<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
-<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
-<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -245,9 +277,9 @@ ul.task-list li input[type="checkbox"] {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="./index.html" class="navbar-brand navbar-brand-logo">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
     </a>
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Michael Fehl</span>
     </a>
   </div>
@@ -329,7 +361,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Financial Econometrics: Time Series</li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -340,7 +372,7 @@ ul.task-list li input[type="checkbox"] {
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
-      <a href="./index.html" class="sidebar-logo-link">
+      <a href="../../index.html" class="sidebar-logo-link">
       </a>
       </div>
     <div class="sidebar-menu-container"> 
@@ -717,66 +749,72 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#unemploy" id="toc-unemploy" class="nav-link active" data-scroll-target="#unemploy">Unemploy</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content">
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
 
 
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">Financial Econometrics: Time Series</h1>
+
+
+
+<section id="unemploy" class="level2">
+<h2 class="anchored" data-anchor-id="unemploy">Unemploy</h2>
+<p>https://expinterweb.mites.gob.es/series/</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>serie<span class="ot">=</span><span class="fu">window</span>(<span class="fu">ts</span>(<span class="fu">read.table</span>(<span class="st">"unemploy.dat"</span>,<span class="at">dec=</span><span class="st">","</span>)<span class="sc">/</span><span class="fl">1e6</span>,<span class="at">start=</span><span class="dv">1996</span>,<span class="at">freq=</span><span class="dv">12</span>),<span class="at">start=</span><span class="fu">c</span>(<span class="dv">2000</span>),<span class="at">end=</span><span class="fu">c</span>(<span class="dv">2025</span>,<span class="dv">12</span>))</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>(<span class="fu">round</span>(serie,<span class="dv">3</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       Jan   Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov   Dec
+2000 2.090 2.080 2.042 1.984 1.929 1.903 1.893 1.888 1.908 1.934 1.963 1.947
+2001 2.017 1.993 1.981 1.910 1.898 1.843 1.836 1.879 1.889 1.941 1.986 1.989
+2002 2.075 2.150 2.083 2.060 2.003 1.963 1.962 1.984 2.007 2.065 2.117 2.127
+2003 2.185 2.180 2.163 2.104 2.036 2.020 1.996 2.017 2.040 2.097 2.143 2.181
+2004 2.233 2.219 2.182 2.162 2.091 2.054 2.014 2.050 2.051 2.076 2.121 2.113
+2005 2.177 2.165 2.145 2.096 2.007 1.975 1.989 2.019 2.013 2.053 2.096 2.103
+2006 2.172 2.169 2.149 2.076 2.005 1.960 1.955 1.984 1.966 1.993 2.023 2.023
+2007 2.083 2.075 2.059 2.023 1.973 1.966 1.970 2.028 2.017 2.049 2.094 2.130
+2008 2.262 2.315 2.301 2.339 2.354 2.390 2.427 2.530 2.625 2.818 2.989 3.129
+2009 3.328 3.482 3.605 3.645 3.620 3.565 3.544 3.629 3.709 3.808 3.869 3.924
+2010 4.048 4.131 4.167 4.142 4.066 3.982 3.909 3.970 4.018 4.086 4.110 4.100
+2011 4.231 4.299 4.334 4.269 4.190 4.122 4.080 4.131 4.227 4.361 4.420 4.422
+2012 4.600 4.712 4.751 4.744 4.714 4.615 4.587 4.626 4.705 4.834 4.908 4.849
+2013 4.981 5.040 5.035 4.989 4.891 4.764 4.699 4.699 4.724 4.811 4.809 4.701
+2014 4.814 4.812 4.796 4.684 4.572 4.450 4.420 4.428 4.448 4.527 4.512 4.448
+2015 4.526 4.512 4.452 4.333 4.215 4.120 4.046 4.068 4.094 4.176 4.149 4.094
+2016 4.151 4.153 4.095 4.011 3.891 3.767 3.683 3.697 3.720 3.765 3.790 3.703
+2017 3.760 3.751 3.702 3.573 3.461 3.363 3.336 3.382 3.410 3.467 3.474 3.413
+2018 3.477 3.470 3.423 3.336 3.252 3.162 3.135 3.182 3.203 3.255 3.253 3.202
+2019 3.286 3.289 3.255 3.164 3.079 3.016 3.011 3.066 3.080 3.178 3.198 3.164
+2020 3.254 3.246 3.548 3.831 3.858 3.863 3.773 3.803 3.776 3.826 3.851 3.888
+2021 3.964 4.009 3.950 3.911 3.781 3.614 3.416 3.334 3.258 3.257 3.183 3.106
+2022 3.123 3.112 3.109 3.023 2.923 2.881 2.884 2.924 2.942 2.915 2.881 2.838
+2023 2.908 2.911 2.862 2.788 2.739 2.689 2.678 2.703 2.722 2.759 2.735 2.707
+2024 2.768 2.760 2.727 2.667 2.608 2.561 2.550 2.572 2.575 2.602 2.586 2.561
+2025 2.599 2.593 2.580 2.513 2.455 2.406 2.405 2.427 2.422 2.444 2.425 2.409</code></pre>
 </div>
-
-
-
-<div class="quarto-title-meta">
-
-    
-  
-    
-  </div>
-  
-
-
-</header>
-
-
-<div class="cell" data-fig-width="10" data-layout-align="default">
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(serie,<span class="at">main=</span><span class="st">"Unemploy Spain"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span><span class="dv">1996</span><span class="sc">:</span><span class="dv">2026</span>,<span class="at">col=</span><span class="dv">4</span>,<span class="at">lty=</span><span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<p></p><figure class="figure"><p></p>
-<div>
-<pre class="mermaid mermaid-js">flowchart LR
-    A(Non-Stationary Data) --&gt; B(Transform Variance)
-    B --&gt; C(ARMA Models)
-    B --&gt; D(GARCH Models)
-    P([Project 01])
-
-    %% Invisible link to nudge P near C/D without drawing a line
-    C ~~~ P
-
-    click C "notes/02/models.html" "Go to ARMA Notes"
-    click D "problem_sets/HW_1_Transformations/01ps_final.html" "Go to GARCH Notes"
-    click A "notes/01/intro.html"
-    click P "projects/Project01/project01.html" "Go to Project 01"
-
-    %% Classes
-    class A,B,C,D nav-node
-    class P project-node
-
-    %% STYLE THE LINES
-    linkStyle 1 stroke:#ff4d4d,stroke-width:2px;
-    linkStyle 2 stroke:#00cc66,stroke-width:2px;
-</pre>
-</div>
-<p></p></figure><p></p>
+<figure class="figure">
+<p><img src="Unemploy_read_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
 </div>
 </div>
 
 
+</section>
 
 <a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -1229,5 +1267,5 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<script src="site_libs/quarto-html/zenscroll-min.js"></script>
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
 </body></html>
