@@ -13,6 +13,9 @@ site_libs/
 # === Data Files ===
 data/
 Data/
-*.jpg
-*.png
 *.xlsx
+
+*.png
+*.jpg
+!images/
+!docs/images/
