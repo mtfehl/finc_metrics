@@ -8,7 +8,6 @@
 .quarto/
 /.quarto/
 **/*.quarto_ipynb
-_freeze/
 site_libs/
 
 # === Data Files ===
