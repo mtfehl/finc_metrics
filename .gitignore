@@ -14,8 +14,3 @@ site_libs/
 data/
 Data/
 *.xlsx
-
-*.png
-*.jpg
-!images/
-!docs/images/
