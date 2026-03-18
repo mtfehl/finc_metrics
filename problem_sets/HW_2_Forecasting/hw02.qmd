@@ -1,0 +1,1134 @@
+---
+title: "PS2: ARIMA"
+description: "Identifying, Validating, and Selecting ARIMA models."
+author: "Michael Fehl, Francesco Zucca, Giuseppe Lista"
+date: 02-16-2026
+problem-set: true
+format:
+  html:
+    embed-resources: true
+image: "/images/mean-var.png"
+execute:
+  cache: true
+---
+
+# 1 Introduction
+
+In this practice, we will work on identifying $ARIMA(p, d, q)(P, D, Q)_s$ models for non-stationary time series that have a seasonal component. We will also focus on validating models fitted to time series data and selecting the best model among different alternatives. The chosen model will then be used to generate forecasts. As done in previous practices, each student group must follow the practice script below, per- forming the necessary calculations and graphs in the R environment. The obtained results and answers to the questions should be compiled into a document containing your solution, created, for example, in R Markdown or Microsoft Word. Please make sure to include your full names and group number at the beginning of the document. Submit the questionnaire solution in PDF format by uploading it to the platform under the corresponding task section before the deadline.
+
+# 2 Data
+
+In this questionnaire, we will work with the following time series:
+
+[Unemploy](https://expinterweb.mites.gob.es/series/): Number of individuals registered as unemployed in SEPE offices since January 2000.
+
+## 2.1 Load
+
+```{r data}
+unempl <- window(ts(
+              read.table("unemploy.dat",dec=",")/1e6,start=1996,freq=12),
+              start=c(2000),
+              end=c(2025,12))
+(round(unempl,3))
+```
+
+## 2.2 Exploratory Analysis
+
+```{r initial plot}
+plot(unempl,main="Unemployment Rate in Spain, since 2000",
+     ylab="UR (%)")
+abline(v=1996:2026,col=4,lty=3)
+```
+
+From first glances at our data after plotting, we observe some initial characteristics of the ts.
+
+First, that the **trend** seems to be non-constant; it remains constant from 2000-2008, until the great financial crisis wherein the unemployment rate is increasing quadratically until the ended of the crisis ~2012. Afterwards, the trend decreases linearly, before an exponential spike during the COVID-19 pandemic. It seems to decrease at a linear rate since the end of the health crisis.
+
+Secondly, we notice that there seems to be an obvious **seasonal component** to the time series, with a cyclical dip in unemployment during the summer. 
+
+From our initial observations, it does not seem immediately obvious that the volatility (variance) is non-constant at different levels; it seems to remain around the same level across different levels in the data.
+
+To investigate all of these further and properly deal with this time series object, we will use additional tools to correctly identify the behavior and transform the series accordingly. Note that our path to a non-stationary object to a stationary one takes the following form:
+
+```{mermaid flowchart}
+%%| fig-width: 10
+flowchart LR
+    X([Non-Stationary Data]) --> A{Constant Variance?}
+    
+    A -->|no| L(Change Scale)
+    A -->|yes| S{Seasonal Pattern?}
+    L -.-> S
+    
+    S -->|yes| SD(Seasonal Difference)
+    S -->|no| CM{Constant Mean?}
+    SD -.-> CM
+    
+    CM -->|no| RD(Regular Differences)
+    CM -->|yes| W([Stationary])
+    RD -.-> CM
+    
+    %% Classes
+    class A,S,L,SD,CM,RD nav-node
+    class X,W project-node
+
+    %% STYLE THE LINES
+    linkStyle 1 stroke:#FFFFFF,stroke-width:2px;
+    
+    linkStyle 1 stroke:#FF0000,stroke-width:2px;
+    linkStyle 2 stroke:#00E91F,stroke-width:2px;
+    linkStyle 3 stroke:#FFFFFF,stroke-width:2px;
+    
+    linkStyle 4 stroke:#FF0000,stroke-width:2px;
+    linkStyle 5 stroke:#00E91F,stroke-width:2px;
+    linkStyle 6 stroke:#FFFFFF,stroke-width:2px;
+    
+    linkStyle 7 stroke:#FF0000,stroke-width:2px;
+    linkStyle 8 stroke:#00E91F,stroke-width:2px;
+    linkStyle 9 stroke:#FFFFFF,stroke-width:2px;
+    
+    %% STYLE THE BOXES
+    style L fill:#ff00ff;
+    style SD fill:#ff00ff;
+    style RD fill:#ff00ff;
+```
+
+# 3 Transformations
+
+## 3.1 Variance
+
+First, we will check for a non-constant variance. If detected, we need to treat it by changing the scale of our observations. To check we will use tools such as mean-variance plots and grouped histograms.
+
+```{r mean-var plot}
+# mean-var
+m <- apply(matrix(unempl[1:(21*12)],nr=12),2,mean)
+v <- apply(matrix(unempl[1:(21*12)],nr=12),2,var)
+plot(m,v,xlab="Yearly means",ylab="Yearly variances",main="UNEMPL")
+abline(lm(v~m),col=2,lty=3,lwd=2)
+```
+
+seems to exist a positive relationship b/w the level and the variance; i.e., higher level corresponds to higher variance, on average.
+
+To further investigate, we look at boxplots:
+
+```{r grouped bplot}
+# grouped histogram
+boxplot(unempl~floor(time(unempl)),
+        col = "chocolate")
+
+```
+
+although not very obvious at first, since there seems to be higher variance at higher levels of our series, we decide to transform our data by scaling the ts points using a logarithmic function; we use log since (...).
+
+```{r transformation}
+# log trans
+ln.unempl <- log(unempl)
+
+par(mfrow=c(1,2))
+boxplot(unempl~floor(time(unempl)), 
+        xlab = "Year", 
+        ylab = "UR (%)",
+        main = "Unemployment in Spain, since 2000",
+        col = "green4")
+boxplot(ln.unempl~floor(time(ln.unempl)),
+         xlab = "Year", 
+        ylab = "log UR (%)",
+        main = "Unemployment in Spain, since 2000",
+        col = "maroon")
+par(mfrow=c(1,1))
+```
+
+```{r trans plot}
+# mean-var
+m <- apply(matrix(ln.unempl[1:(21*12)],nr=12),2,mean)
+v <- apply(matrix(ln.unempl[1:(21*12)],nr=12),2,var)
+plot(m,v,
+     xlab="Yearly means",
+     ylab="Yearly variances",
+     main="LOG UNEMPL",
+     bg = "red4", col="black", pch = 21)
+abline(lm(v~m),col=2,lty=3,lwd=2)
+```
+
+
+We see that indeed this transformation leads to a more constant variance
+
+## 3.2 Seasonality
+
+```{r monthplot}
+# check for seasonal cycles
+par(mfrow=c(1,2))
+monthplot(ln.unempl)
+ts.plot(matrix(ln.unempl,nrow=12),col=1:8)
+par(mfrow=c(1,1))
+```
+
+Seems to exist seasonality; we can further confirm by looking at a decomposition of our log transformed unemployed ts object:
+
+```{r decomp}
+# decomposition of our ts object
+plot(decompose(ln.unempl))
+```
+
+
+We deal with the apparent seasonality in our ts by taking seasonal differences. 
+
+```{r seasonal transformation}
+# seasonal diffs
+d12ln.unempl=diff(ln.unempl,12)
+plot(d12ln.unempl, main = "placeholder",
+     ylab = "placeholder")
+abline(h=0)
+```
+
+
+
+```{r trans monthplot}
+# sanity check
+par(mfrow=c(1,2))
+monthplot(d12ln.unempl)
+ts.plot(matrix(d12ln.unempl,nrow=12),col=1:8)
+par(mfrow=c(1,1))
+```
+
+We observe no signs of seasonal patterns after we take seasonal differences.
+
+## 3.3 Mean
+
+From our transformed ts object `d12ln.unempl`, we now need to finally check for a non-constant mean. Indeed, from our previous plot we notice that the trend seems to be non-constant; thus, we need to take first differences ($\Delta (1-B)X_t$) at every step iteratively, until our variance stops decreasing (to avoid 'over-differencing'). Since at our first step our variance may not decrease, we will take first-differences three times, then compare their variances to see at which (if any) of these steps the variance increases. 
+
+```{r s-differences plots}
+par(mfrow=c(2,2))
+# Regular Plot (accounting for seasonality and non-constant volatility)
+plot(d12ln.unempl,
+     main = "No Differences")
+abline(h=0, col="blue")
+abline(h=mean(d12ln.unempl), col = "red")
+
+# Plot after taking first differences
+d1d12ln.unempl <- diff(d12ln.unempl)
+
+plot(d1d12ln.unempl,
+     main = "First-Differences")
+abline(h=0, col="blue")
+abline(h=mean(d1d12ln.unempl), col = "red")
+
+# Plot after taking second differences
+d1d1d12ln.unempl <- diff(d1d12ln.unempl)
+
+plot(d1d1d12ln.unempl,
+     main = "Second-Differences")
+abline(h=0, col="blue")
+abline(h=mean(d1d1d12ln.unempl), col = "red")
+
+# Plot after taking third differences
+d1d1d1d12ln.unempl <- diff(d1d1d12ln.unempl)
+
+plot(d1d1d1d12ln.unempl,
+     main = "Third-Differences")
+abline(h=0, col="blue")
+abline(h=mean(d1d1d1d12ln.unempl), col = "red")
+par(mfrow=c(1,1))
+```
+
+
+
+```{r compare vars}
+# Variance before first-diff
+paste("Variance before 1st-diff: ", as.numeric(var(d12ln.unempl)))
+
+# Variance at first-diff
+paste("Variance after 1st-diff: ", as.numeric(var(d1d12ln.unempl)))
+
+# Variance at second-diff
+d1d1d12ln.unempl <- diff(d1d12ln.unempl)
+paste("Variance after 2nd-diff: ", as.numeric(var(d1d1d12ln.unempl)))
+
+# Variance at third-diff
+paste("Variance after 3rd-diff: ", as.numeric(var(d1d1d1d12ln.unempl)))
+```
+
+Note that at the third step, our variance increases again. Thus, we take first-differences twice, then we stop after that. Thus, our final transformed ts object is now stationary, after applying a *log* transformation to deal with non-constant variance, a *seasonal difference* to deal with cyclical patterns, and two *first-differences* to deal with a non-constant mean. 
+
+## 3.4 Result: Stationary Object
+
+```{r stationary plot}
+# plot of our final, transformed ts object
+plot(d1d1d12ln.unempl,
+     main="Unemployment Rate in Spain, since 2000",
+     ylab="log UR (%)")
+abline(v=2000:2026,col=4,lty=3)
+```
+
+# 4 ACF
+
+## 4.1 Confirm Stationarity
+
+To confirm the stationarity of our transformed ts object, we will look at the plots of the auto-correlation function pre- and post-transformation. 
+
+```{r pre-post acfs}
+par(mfrow=c(1,2))
+acf(unempl,
+    main = "Pre-Transformation",
+    col=c(2,rep(1,11))) # acf
+acf(d1d1d12ln.unempl,
+    main = "Post-Transformation",
+    col=c(2,rep(1,11))) 
+par(mfrow=c(1,1))
+```
+
+Note that for the post-transformation ACF, we notice that the ACF value immediately drops towards 0 as we go further back in time (higher lags). This evidence supports our transformation to a stationarity object; note that non-stationarity is evidenced by a gradual drop towards 0 as we increase t, which matches our pre-transformation ACF shape.
+
+# 5 Model Proposition
+
+To begin proposing candidate models for our data, we will look at the plots of both the auto-correlation and partial auto-correlation functions for our stationary object.
+
+## 5.1 ACF & PACF
+
+```{r acf-pacf plots}
+par(mfrow=c(1,2))
+
+acf(d1d1d12ln.unempl,
+    col=c(2,rep(1,11)),
+    main = "d1d1d12ln.unempl") # acf
+pacf(d1d1d12ln.unempl,
+     col=c(rep(1,11),2),
+     main = "d1d1d12ln.unempl") # pacf
+
+par(mfrow=c(1,1))
+```
+
+To propose models, we look at the first non-zero values in the ACF & PACF. Note that when we select based on ACF, we are discussing MA(q) model values; for PACF, we are discussing AR(p) model values.
+
+Looking at the ACF graph, I would propose MA(1) & MA(5) models since they contain all of our first non-zero values (i.e., outside or touching our 95% CI). This corresponds to an ARMA(1,0) and ARMA(5,0) model.
+
+Looking at the PACF graph, I would propose AR(1) & AR(2) models. 
+
+Since we have both AR(1) and MA(1), and a high degree MA(5) model, I would suggest the following models:
+
+  * ARMA(1,0)
+  * ARMA(1,1) 
+  * ARMA(0,1)
+  * ARMA(0,5)
+  
+Note that since we took seasonal differences during our transformation steps, the first seasonal non-zero component is at D=1. We want to only consider the first 5-6 lags for both the ACF/PACF graphs, since the closer we get to the seasonal components, the higher likelihood we encounter a "satellite" which would be heavily influenced by the seasonal component and perhaps show a false reading (a falsely identified non-zero lag).
+
+We tend to favor more parsimonious models since they are more interpretable and typically decent approximations of reality, even if reality is highly non-linear (thanks to Taylor Series approximations). We like to consider a high order model in the ARMA(0,5) proposal, in case this fits very well; if this model overfits and has high variance (poor performance out of sample), we can always reduce the order and try simpler models. 
+  
+# 6 Model Estimation
+
+*Note*: During the estimation process, first specify the transformed stationary series ($W_t$) to obtain the mean estimation:
+
+`arima(w,order=c(p,0,q),seasonal=list(order=c(P,0,Q)))`
+
+If the mean is not significant, re-estimate the model for the original series ($X_t$ or $log(X_t)$), specifying the differentiations in the estimation method:
+
+`arima(x,order=c(p,d,q),seasonal=list(order=c(P,D,Q)))`
+
+## 6.1 ARMA(1,0)
+
+We start with our simplest AR(1) model specification. Note that since we took seasonal and first differences already, we are estimating a SARIMA model with the form:
+
+$$ARIMA(1,0,0)(0,0,1)_{12}$$
+
+
+```{r}
+(mod1.1=arima(d1d1d12ln.unempl,
+           order=c(1,0,0),
+           seasonal=list(order=c(0,0,1),
+                         period=12)))
+```
+
+Note that our mean (the intercept) is non-significant, since we get a test statistic of:
+
+$$ \hat{t}_0 = \frac{\hat{\beta}_0}{SE(\hat{\beta}_0)} = \frac{0.0000}{0.0001} = 0 < 1.96$$
+
+Since the mean is not significant, we re-estimate the model using the original `ln.unempl` series, now using the form:
+
+$$ARIMA(1,2,0)(0,1,1)_{12}$$
+
+
+```{r}
+(mod1.2=arima(ln.unempl,
+           order=c(1,2,0),
+           seasonal=list(order=c(0,1,1),
+                         period=12)))
+```
+
+Note that all of our coefficients are significant, since their estimates are at least 2x greater than their standard errors; i.e., their absolute values are greater than the 95% critical value of a normal distribution ($|\hat{t}_k| > \mathbb{z}_{0.95} = 1.96 $)
+
+```{r, warning=FALSE}
+(t_vals <- mod1.2$coef / diag(sqrt(mod1.2$var.coef)))
+```
+
+## 6.2 ARMA(1,1)
+
+Now we move onto a ARMA(1,1) model specification. Note that since we took seasonal and first differences already, we are estimating a SARIMA model with the form:
+
+$$ARIMA(1,0,1)(0,0,1)_{12}$$
+
+```{r}
+(mod2.1=arima(d1d1d12ln.unempl,
+           order=c(1,0,1),
+           seasonal=list(order=c(0,0,1),
+                         period=12)))
+```
+
+Note that our mean (the intercept) is non-significant, since we get a test statistic of:
+
+$$ \hat{t}_0 = \frac{\hat{\beta}_0}{SE(\hat{\beta}_0)} = \frac{0.0000}{0.0001} = 0 < 1.96$$
+
+Since the mean is not significant, we re-estimate the model using the original `ln.unempl` series, now using the form:
+
+$$ARIMA(1,2,1)(0,1,1)_{12}$$
+
+
+```{r}
+(mod2.2=arima(ln.unempl,
+           order=c(1,2,1),
+           seasonal=list(order=c(0,1,1),
+                         period=12)))
+```
+All of our coefficients in this model are significant.
+
+```{r, warning=FALSE}
+(t_vals <- mod2.2$coef / diag(sqrt(mod2.2$var.coef)))
+```
+
+## 6.3 ARMA(0,1)
+
+Now we move onto a ARMA(0,1) model specification. Note that since we took seasonal and first differences already, we are estimating a SARIMA model with the form:
+
+$$ARIMA(0,0,1)(0,0,1)_{12}$$
+
+```{r}
+(mod3.1=arima(d1d1d12ln.unempl,
+           order=c(0,0,1),
+           seasonal=list(order=c(0,0,1),
+                         period=12)))
+```
+
+Note that our mean (the intercept) is non-significant, since we get a test statistic of:
+
+$$ \hat{t}_0 = \frac{\hat{\beta}_0}{SE(\hat{\beta}_0)} = \frac{0.0000}{0.0001} = 0 < 1.96$$
+
+Since the mean is not significant, we re-estimate the model using the original `ln.unempl` series, now using the form:
+
+$$ARIMA(0,2,1)(0,1,1)_{12}$$
+
+
+```{r}
+(mod3.2=arima(ln.unempl,
+           order=c(0,2,1),
+           seasonal=list(order=c(0,1,1),
+                         period=12)))
+```
+
+All of our coefficients in this model are significant.
+
+```{r, warning=FALSE}
+(t_vals <- mod3.2$coef / diag(sqrt(mod3.2$var.coef)))
+```
+
+## 6.4 ARMA(0,5)
+
+Finally, we move onto a ARMA(0,5) model specification. Note that since we took seasonal and first differences already, we are estimating a SARIMA model with the form:
+
+$$ARIMA(0,0,5)(0,0,1)_{12}$$
+
+```{r}
+(mod4.1=arima(d1d1d12ln.unempl,
+           order=c(0,0,5),
+           seasonal=list(order=c(0,0,1),
+                         period=12)))
+```
+
+Note that our mean (the intercept) is non-significant, since we get a test statistic of:
+
+$$ \hat{t}_0 = \frac{\hat{\beta}_0}{SE(\hat{\beta}_0)} = \frac{0.0000}{0.0001} = 0 < 1.96 $$
+
+Since the mean is not significant, we re-estimate the model using the original `ln.unempl` series, now using the form:
+
+$$ARIMA(0,2,5)(0,1,1)_{12}$$
+
+
+```{r}
+(mod4.2=arima(ln.unempl,
+           order=c(0,2,5),
+           seasonal=list(order=c(0,1,1),
+                         period=12)))
+```
+
+Note that not all of our coefficients are significant in this model; our lags $z_{t-2}, z_{t-4}, z_{t-5}$ all have test statistics with absolute values less than our critical value of $\mathbb{z}_{0.95} = 1.96$. Thus, we remove these insignificant coefficients.
+
+```{r, warning=FALSE}
+(t_vals <- mod4.2$coef / diag(sqrt(mod4.2$var.coef)))
+```
+
+### 6.4.1 drop ma5
+
+To drop coefficients, we decide the best process is to first drop the longer lags first, one at a time, and see how that changes the model since they are likely correlated and could be influencing the coefficient estimates of more recent lags.
+
+```{r, warning=FALSE}
+mod4.2.1 <- arima(ln.unempl, 
+                        order = c(0, 2, 5), 
+                        seasonal = list(order = c(0, 1, 1), period = 12),
+                        fixed = c(NA, NA, NA, NA, 0, NA)) # force ma5 == 0
+(t_vals <- mod4.2.1$coef / diag(sqrt(mod4.2.1$var.coef)))
+
+```
+
+### 6.4.2 &drop ma4
+
+```{r, warning=FALSE}
+mod4.2.2 <- arima(ln.unempl, 
+                        order = c(0, 2, 5), 
+                        seasonal = list(order = c(0, 1, 1), period = 12),
+                        fixed = c(NA, NA, NA, 0, 0, NA)) # force ma4, ma5 == 0
+(t_vals <- mod4.2.2$coef / diag(sqrt(mod4.2.2$var.coef)))
+
+```
+
+### 6.4.3 &drop ma2
+
+
+```{r, warning=FALSE}
+mod4.2.3 <- arima(ln.unempl, 
+                        order = c(0, 2, 5), 
+                        seasonal = list(order = c(0, 1, 1), period = 12),
+                        fixed = c(NA, 0, NA, 0, 0, NA)) # force ma2, ma4, ma5 == 0
+(t_vals <- mod4.2.3$coef / diag(sqrt(mod4.2.3$var.coef)))
+
+```
+
+## 6.5 Final Model Forms
+
+Our final specified models take the form:
+
+  * $ARIMA(1,2,0)(0,1,1)_{12}$
+  * $ARIMA(1,2,1)(0,1,1)_{12}$
+  * $ARIMA(0,2,1)(0,1,1)_{12}$
+  * $ARIMA(0,2,5)(0,1,1)_{12}$
+  
+    - where $ARIMA(0,2,5)(0,1,1)_{12}$ forces $z_{t-2}, z_{t-4}, z_{t-5} = 0$.
+
+# 7 Model Validation
+
+```{r validation function, message=FALSE, warnings=FALSE}
+#################Validation#################################
+validation=function(model){
+  s=frequency(get(model$series))
+  resid=model$residuals
+  par(mfrow=c(2,2),mar=c(3,3,3,3))
+  #Residuals plot
+  plot(resid,main="Residuals")
+  abline(h=0)
+  abline(h=c(-3*sd(resid),3*sd(resid)),lty=3,col=4)
+  #Square Root of absolute values of residuals (Homocedasticity)
+  scatter.smooth(sqrt(abs(resid)),main="Square Root of Absolute residuals",
+                 lpars=list(col=2))
+  
+  #Normal plot of residuals
+  qqnorm(resid)
+  qqline(resid,col=2,lwd=2)
+  
+  ##Histogram of residuals with normal curve
+  hist(resid,breaks=20,freq=FALSE)
+  curve(dnorm(x,mean=mean(resid),sd=sd(resid)),col=2,add=T)
+  
+  
+  #ACF & PACF of residuals
+  par(mfrow=c(1,2))
+  acf(resid,ylim=c(-1,1),lag.max=60,col=c(2,rep(1,s-1)),lwd=1)
+  pacf(resid,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1)
+  par(mfrow=c(1,1))
+  
+  #ACF & PACF of square residuals 
+  par(mfrow=c(1,2))
+  acf(resid^2,ylim=c(-1,1),lag.max=60,col=c(2,rep(1,s-1)),lwd=1)
+  pacf(resid^2,ylim=c(-1,1),lag.max=60,col=c(rep(1,s-1),2),lwd=1)
+  par(mfrow=c(1,1))
+  
+  #Ljung-Box p-values
+  par(mar=c(2,2,1,1))
+  tsdiag(model,gof.lag=7*s)
+  cat("\n--------------------------------------------------------------------\n")
+  print(model)
+  
+  #Stationary and Invertible
+  cat("\nModul of AR Characteristic polynomial Roots: ", 
+      Mod(polyroot(c(1,-model$model$phi))),"\n")
+  cat("\nModul of MA Characteristic polynomial Roots: ",
+      Mod(polyroot(c(1,model$model$theta))),"\n")
+  
+  #Model expressed as an MA infinity (psi-weights)
+  psis=ARMAtoMA(ar=model$model$phi,ma=model$model$theta,lag.max=36)
+  names(psis)=paste("psi",1:36)
+  cat("\nPsi-weights (MA(inf))\n")
+  cat("\n--------------------\n")
+  print(psis[1:20])
+  
+  #Model expressed as an AR infinity (pi-weights)
+  pis=-ARMAtoMA(ar=-model$model$theta,ma=-model$model$phi,lag.max=36)
+  names(pis)=paste("pi",1:36)
+  cat("\nPi-weights (AR(inf))\n")
+  cat("\n--------------------\n")
+  print(pis[1:20])
+ 
+  cat("\nNormality Tests\n")
+  cat("\n--------------------\n")
+ 
+  ##Shapiro-Wilks Normality test
+  print(shapiro.test(resid(model)))
+
+  suppressMessages(require(nortest,quietly=TRUE,warn.conflicts=FALSE))
+  ##Anderson-Darling test
+  print(ad.test(resid(model)))
+  
+  suppressMessages(require(tseries,quietly=TRUE,warn.conflicts=FALSE))
+  ##Jarque-Bera test
+  print(jarque.bera.test(resid(model)))
+  
+  cat("\nHomoscedasticity Test\n")
+  cat("\n--------------------\n")
+  suppressMessages(require(lmtest,quietly=TRUE,warn.conflicts=FALSE))
+  ##Breusch-Pagan test
+  obs=get(model$series)
+  print(bptest(resid(model)~I(obs-resid(model))))
+  
+  cat("\nIndependence Tests\n")
+  cat("\n--------------------\n")
+  
+  ##Ljung-Box test
+  cat("\nLjung-Box test\n")
+  print(t(apply(matrix(c(1:4,(1:4)*s)),1,function(el) {
+    te=Box.test(resid(model),type="Ljung-Box",lag=el)
+    c(lag=(te$parameter),statistic=te$statistic[[1]],p.value=te$p.value)})))
+
+}
+################# Fi Validaci? #################################
+```
+
+
+# 8 Model Comparion
+
+## 8.1 Invertability/Causality
+
+(a) Using the characteristic polynomials of the AR and MA components, calculate the modulus of their roots. Is the estimated model causal? Is it invertible?
+
+### 8.1.1 ARMA(1,0)
+
+```{r}
+# AR modules (invertability)
+Mod(polyroot(c(1,-mod1.2$model$phi))); 
+# MA modules (causality)
+Mod(polyroot(c(1,mod1.2$model$theta)))
+```
+### 8.1.2 ARMA(1,1)
+
+```{r}
+# AR modules (invertability)
+Mod(polyroot(c(1,-mod2.2$model$phi))); 
+# MA modules (causality)
+Mod(polyroot(c(1,mod2.2$model$theta)))
+```
+
+### 8.1.3 ARMA(0,1)
+
+```{r}
+# AR modules (invertability)
+Mod(polyroot(c(1,-mod3.2$model$phi))); 
+# MA modules (causality)
+Mod(polyroot(c(1,mod3.2$model$theta)))
+```
+
+### 8.1.4 ARMA(0,5)
+
+```{r}
+# AR modules (invertability)
+Mod(polyroot(c(1,-mod4.2.3$model$phi))); 
+# MA modules (causality)
+Mod(polyroot(c(1,mod4.2.3$model$theta)))
+```
+
+## 8.2 Residuals & Variance
+
+### 8.2.1 ARMA(1,0)
+
+
+(b) Plot the residuals and the square root of the absolute residuals with a smoothing adjustment. Can we assume that variance is constant?
+
+```{r}
+resi1 <-resid(mod1.2)
+# residuals plot
+plot(resi1)
+abline(h=0)
+abline(h=c(-3*sd(resi1),3*sd(resi1)), lty=3, col=4)
+
+# sqrt residuals, smoothed
+scatter.smooth(sqrt(abs(resi1)), lpars=list(col=2))
+
+```
+
+### 8.2.2 ARMA(1,1)
+
+
+```{r}
+resi2 <-resid(mod2.2)
+# residuals plot
+plot(resi2)
+abline(h=0)
+abline(h=c(-3*sd(resi2),3*sd(resi2)), lty=3, col=4)
+
+# sqrt residuals, smoothed
+scatter.smooth(sqrt(abs(resi2)), lpars=list(col=2))
+
+```
+
+### 8.2.3 ARMA(0,1)
+
+
+```{r}
+resi3 <-resid(mod3.2)
+# residuals plot
+plot(resi3)
+abline(h=0)
+abline(h=c(-3*sd(resi3),3*sd(resi3)), lty=3, col=4)
+
+# sqrt residuals, smoothed
+scatter.smooth(sqrt(abs(resi3)), lpars=list(col=2))
+
+```
+
+### 8.2.4 ARMA(0,5)
+
+
+```{r}
+resi4 <-resid(mod4.2.3)
+# residuals plot
+plot(resi4)
+abline(h=0) 
+abline(h=c(-3*sd(resi4),3*sd(resi4)), lty=3, col=4)
+
+# sqrt residuals, smoothed
+scatter.smooth(sqrt(abs(resi4)), lpars=list(col=2))
+
+```
+
+## 8.3 Shapiro-Wilk Test
+
+(c) Generate the normality plot and the histogram with the normal curve superimposed. Apply the Shapiro-Wilk test to the residuals. Can we assume that residuals follow a normal distribution?
+
+### 8.3.1 ARMA(1,0)
+
+```{r}
+# normality plot
+qqnorm(resi1); qqline(resi1, col=2, lwd=2)
+
+# histogram w/ norm curv superimposed
+hist(resi1, breaks=20, freq=FALSE)
+curve(dnorm(x, mean=mean(resi1), sd=sd(resi1)), col=2, add=T)
+
+# shapiro-wilks
+shapiro.test(resi1)
+```
+
+### 8.3.2 ARMA(1,1)
+
+
+```{r}
+# normality plot
+qqnorm(resi2); qqline(resi2, col=2, lwd=2)
+
+# histogram w/ norm curv superimposed
+hist(resi2, breaks=20, freq=FALSE) 
+curve(dnorm(x, mean=mean(resi2), sd=sd(resi2)), col=2, add=T)
+
+# shapiro-wilks
+shapiro.test(resi2)
+```
+
+### 8.3.3 ARMA(0,1)
+
+
+```{r}
+# normality plot
+qqnorm(resi3); qqline(resi3, col=2, lwd=2)
+
+# histogram w/ norm curv superimposed
+hist(resi3, breaks=20, freq=FALSE)
+curve(dnorm(x, mean=mean(resi3), sd=sd(resi3)), col=2,add=T)
+
+# shapiro-wilks
+shapiro.test(resi3)
+```
+
+### 8.3.4 ARMA(0,5)
+
+
+```{r}
+# normality plot
+qqnorm(resi4); qqline(resi4, col=2, lwd=2)
+
+# histogram w/ norm curv superimposed
+hist(resi4, breaks=20, freq=FALSE)
+curve(dnorm(x, mean=mean(resi4), sd=sd(resi4)), col=2, add=T)
+
+# shapiro-wilks
+shapiro.test(resi4)
+```
+
+## 8.4 Ljung-Box test
+
+(d) Plot the ACF and PACF of residuals and display p-values from the Ljung-Box test. Can we assume residuals are independent?
+
+### 8.4.1 ARMA(1,0)
+
+
+```{r}
+# acf of resids
+acf(resi1, main = "ACF of Residuals", 
+    lag.max = 72, ylim = c(-1, 1),
+    col=c(2, rep(1,11)))
+
+# pacf of resids
+pacf(resi1, main = "PACF of Residuals", 
+     lag.max = 72, ylim = c(-1, 1),
+     col=c(rep(1,11),2))
+
+# ljung-box test
+tsdiag(mod1.2, gof.lag=72)
+```
+
+### 8.4.2 ARMA(1,1)
+
+
+```{r}
+# acf of resids
+acf(resi2, main = "ACF of Residuals", 
+    lag.max = 72, ylim = c(-1, 1),
+    col=c(2, rep(1,11)))
+
+# pacf of resids
+pacf(resi2, lag.max = 72, 
+     ylim = c(-1, 1), main = "PACF of Residuals",
+     col=c(rep(1,11),2))
+
+# ljung-box test
+tsdiag(mod2.2, gof.lag=72)
+```
+
+### 8.4.3 ARMA(0,1)
+
+
+```{r}
+# acf of resids
+acf(resi3, ylim = c(-1, 1), 
+    main = "PACF of Residuals", lag.max=72,
+    col=c(2, rep(1,11)))
+
+# pacf of resids
+pacf(resi3, ylim = c(-1, 1), 
+     main = "PACF of Residuals", lag.max=72,
+     col=c(rep(1,11),2))
+
+# ljung-box test
+tsdiag(mod3.2, gof.lag=72)
+```
+
+### 8.4.4 ARMA(0,5)
+
+
+```{r}
+# acf of resids
+acf(resi4,ylim = c(-1, 1), 
+    main = "PACF of Residuals", lag.max=72,
+    col=c(2, rep(1,11)))
+
+# pacf of resids
+pacf(resi4, ylim = c(-1, 1), 
+     main = "PACF of Residuals", lag.max=72,
+     col=c(rep(1,11),2))
+
+# ljung-box test
+tsdiag(mod4.2.3, gof.lag=72)
+```
+
+## 8.5 AIC/BIC
+
+(e) Compute model fit measures (AIC and BIC).
+
+```{r}
+# aic/bic table
+data.frame(
+  "model" = c("ARIMA(1,2,0)(0,1,1)_12", 
+              "ARIMA(1,2,1)(0,1,1)_12",
+              "ARIMA(0,2,1)(0,1,1)_12", 
+              "ARIMA(0,2,5)(0,1,1)_12"),
+  "AIC" = c(AIC(mod1.2), AIC(mod2.2), AIC(mod3.2), AIC(mod4.2.3)),
+  "BIC" = c(BIC(mod1.2), BIC(mod2.2), BIC(mod3.2), BIC(mod4.2.3))
+)
+```
+
+
+
+## 8.6 Model Fit
+
+(f) Fit the model using all data and then excluding the last 12 observations.
+
+```{r}
+# create a new, subsetted series based on log trans data
+ultim=c(2024,12); ln.unempl2=window(ln.unempl, end=ultim)
+```
+
+### 8.6.1 ARMA(1,0)
+
+
+```{r}
+# full data
+mod1.2
+
+# excluding last 12 obs
+(mod1.2_new=arima(ln.unempl2,
+           order=c(1,2,0),
+           seasonal=list(order=c(0,1,1),
+                         period=12)))
+
+```
+
+### 8.6.2 ARMA(1,1)
+
+
+```{r}
+# full data
+mod2.2
+
+# excluding last 12 obs
+(mod2.2_new=arima(ln.unempl2,
+           order=c(1,2,1),
+           seasonal=list(order=c(0,1,1),
+                         period=12)))
+
+```
+
+### 8.6.3 ARMA(0,1)
+
+
+```{r}
+# full data
+mod3.2
+
+# excluding last 12 obs
+(mod3.2_new=arima(ln.unempl2,
+           order=c(0,2,1),
+           seasonal=list(order=c(0,1,1),
+                         period=12)))
+```
+
+### 8.6.4 ARMA(0,5)
+
+
+```{r}
+# full data
+mod4.2.3
+
+# excluding last 12 obs
+(mod4.2_new=arima(ln.unempl2,
+           order=c(0,2,5),
+           seasonal=list(order=c(0,1,1), period=12),
+           fixed = c(NA,0,NA,0,0,NA)))
+```
+
+
+## 8.7 Forecasts & CIs
+
+(g) For the model fitted without the last 12 observations, obtain point forecasts and the corresponding 95% confidence intervals for the final year. Plot the original series (last 5 years) with the forecasts and confidence intervals superimposed.
+
+### 8.7.1 ARMA(1,0)
+
+
+```{r}
+#| code-fold: true
+
+# pred: point forecasts, se: standard deviation
+point_pred1 <- predict(mod1.2_new, n.ahead=12)$pred
+
+# 95% CI: computed using (X_k +- 1.96*SE(X_k))
+sd_pred1 <- predict(mod1.2_new, n.ahead=12)$se
+
+upper1 <- point_pred1 + 1.96*sd_pred1
+lower1 <- point_pred1 - 1.96*sd_pred1
+
+#CIs
+data.frame(
+  Month = format(as.Date(point_pred1), "%b %Y"),
+  Point_Forecast = round(as.numeric(point_pred1), 4),
+  Lower_95 = round(as.numeric(lower1), 4),
+  Upper_95 = round(as.numeric(upper1), 4)
+)
+
+# plot 
+ts.plot(ln.unempl, lower1, upper1, point_pred1, 
+        lty=c(1,2,2,1), 
+        col=c(1,4,4,2), 
+        xlim=c(2020,2026), 
+        type="o")
+abline(v=2020:2025, lty=3, col=4)
+```
+
+### 8.7.2 ARMA(1,1)
+
+
+```{r}
+#| code-fold: true
+
+# pred: point forecasts, se: standard deviation
+point_pred2 <- predict(mod2.2_new, n.ahead=12)$pred
+
+# 95% CI: computed using (X_k +- 1.96*SE(X_k))
+sd_pred2 <- predict(mod2.2_new, n.ahead=12)$se
+
+upper2 <- point_pred2 + 1.96*sd_pred2
+lower2 <- point_pred2 - 1.96*sd_pred2
+
+#CIs
+data.frame(
+  Month = format(as.Date(point_pred2), "%b %Y"),
+  Point_Forecast = round(as.numeric(point_pred2), 4),
+  Lower_95 = round(as.numeric(lower2), 4),
+  Upper_95 = round(as.numeric(upper2), 4)
+)
+
+# plot
+ts.plot(ln.unempl, lower2, upper2, point_pred2, 
+        lty=c(1,2,2,1), 
+        col=c(1,4,4,2), 
+        xlim=c(2020,2026), 
+        type="o")
+abline(v=2020:2025, lty=3, col=4)
+```
+
+### 8.7.3 ARMA(0,1)
+
+
+```{r}
+#| code-fold: true
+
+# pred: point forecasts, se: standard deviation
+point_pred3 <- predict(mod3.2_new, n.ahead=12)$pred
+
+# 95% CI: computed using (X_k +- 1.96*SE(X_k))
+sd_pred3 <- predict(mod3.2_new, n.ahead=12)$se
+
+upper3 <- point_pred3 + 1.96*sd_pred3
+lower3 <- point_pred3 - 1.96*sd_pred3
+
+#CIs
+data.frame(
+  Month = format(as.Date(point_pred3), "%b %Y"),
+  Point_Forecast = round(as.numeric(point_pred3), 4),
+  Lower_95 = round(as.numeric(lower3), 4),
+  Upper_95 = round(as.numeric(upper3), 4)
+)
+
+# plot
+ts.plot(ln.unempl, lower3, upper3, point_pred3, 
+        lty=c(1,2,2,1), 
+        col=c(1,4,4,2), 
+        xlim=c(2020,2026), 
+        type="o")
+abline(v=2020:2025, lty=3, col=4)
+```
+
+### 8.7.4 ARMA(0,5)
+
+
+```{r}
+#| code-fold: true
+
+# pred: point forecasts, se: standard deviation
+point_pred4 <- predict(mod4.2_new, n.ahead=12)$pred
+
+# 95% CI: computed using (X_k +- 1.96*SE(X_k))
+sd_pred4 <- predict(mod4.2_new, n.ahead=12)$se
+
+upper4 <- point_pred4 + 1.96*sd_pred4
+lower4 <- point_pred4 - 1.96*sd_pred4
+
+#CIs
+data.frame(
+  Month = format(as.Date(point_pred4), "%b %Y"),
+  Point_Forecast = round(as.numeric(point_pred4), 4),
+  Lower_95 = round(as.numeric(lower4), 4),
+  Upper_95 = round(as.numeric(upper4), 4)
+)
+
+# plot
+ts.plot(ln.unempl, lower4, upper4, point_pred4, 
+        lty=c(1,2,2,1), 
+        col=c(1,4,4,2), 
+        xlim=c(2020,2026), 
+        type="o")
+abline(v=2020:2025, lty=3, col=4)
+```
+
+## 8.8 Forecasting Accuracy
+
+(h) Compute forecasting accuracy measures (RMSE, MAE, RMSPE, and MAPE). These provide insights into the accuracy of the predictions.
+
+```{r}
+#| code-fold: true
+
+true_obs <- tail(ln.unempl, n=12)
+# forecasting accuracy table
+data.frame(
+  "model" = c("ARIMA(1,2,0)(0,1,1)_12", 
+              "ARIMA(1,2,1)(0,1,1)_12",
+              "ARIMA(0,2,1)(0,1,1)_12", 
+              "ARIMA(0,2,5)(0,1,1)_12"),
+  "RMSE" = c(sqrt(mean((true_obs-point_pred1)*(true_obs-point_pred1))),
+             sqrt(mean((true_obs-point_pred2)*(true_obs-point_pred2))), 
+             sqrt(mean((true_obs-point_pred3)*(true_obs-point_pred3))), 
+             sqrt(mean((true_obs-point_pred4)*(true_obs-point_pred4)))),
+  "MAE" = c(mean(abs(true_obs-point_pred1)), 
+            mean(abs(true_obs-point_pred2)), 
+            mean(abs(true_obs-point_pred3)), 
+            mean(abs(true_obs-point_pred4))),
+  "RMSPE" = c(sqrt(mean(((true_obs-point_pred1)/true_obs)*(true_obs-point_pred1)/true_obs)), 
+              sqrt(mean(((true_obs-point_pred2)/true_obs)*(true_obs-point_pred2)/true_obs)), 
+              sqrt(mean(((true_obs-point_pred3)/true_obs)*(true_obs-point_pred3)/true_obs)), 
+              sqrt(mean(((true_obs-point_pred4)/true_obs)*(true_obs-point_pred4)/true_obs))),
+  "MAPE" = c(mean(abs(true_obs-point_pred1)/true_obs), 
+             mean(abs(true_obs-point_pred2)/true_obs), 
+             mean(abs(true_obs-point_pred3)/true_obs), 
+             mean(abs(true_obs-point_pred4)/true_obs))
+)
+```
+
+## 8.9 Average CI Width
+
+(i) Calculate the average width of the prediction confidence intervals. This is a measure of forecast precision.
+
+```{r}
+#| code-fold: true
+
+# avg predicted CI width table
+data.frame(
+  model = c("ARIMA(1,2,0)(0,1,1)_12", 
+            "ARIMA(1,2,1)(0,1,1)_12",
+            "ARIMA(0,2,1)(0,1,1)_12", 
+            "ARIMA(0,2,5)(0,1,1)_12"),
+  CI_width = c(mean(upper1-lower1), 
+               mean(upper2-lower2), 
+               mean(upper3-lower3), 
+               mean(upper4-lower4))
+)
+```
+
+# 9 Model Selection
+
+Based on all previous information, which of the two proposed models would you select as the best? For the selected model fitted to the entire dataset, generate forecasts and confidence intervals for the next year.
+
+```{r}
+
+
+```

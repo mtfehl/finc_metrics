@@ -1,0 +1,381 @@
+---
+title: "PS3: ARCH, GARCH"
+description: ""
+author: "Michael Fehl, Francesco Zucca, Giuseppe Lista"
+date: 03-08-2026
+problem-set: true
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    embed-resources: true
+  pdf:
+    toc: true
+    documentclass: article
+    geometry: margin=1in
+    highlight-style: github
+image: "/images/placeholder.png"
+execute:
+  cache: true
+---
+
+```{r libraries, output='none'}
+#| code-fold: true
+#| code-summary: "libraries"
+
+library(tidyverse)   # tidy data ecosystem
+library(patchwork)   # patch ggplots
+library(fGarch)      # ARCH, GARCH modeling
+library(fBasics)     # basicStats()
+```
+
+# 1 Introduction
+
+In this practice, we will work on fitting different volatility models (ARCH and GARCH). We will also focus on discussing the validation and selection of the model. As done in previous practices, each student group must follow the practice script below, performing the necessary calculations and graphs in the R environment. The obtained results and answers to the questions should be compiled into a document containing your solution, created, for example, in R Markdown or Microsoft Word. Please make sure to include your full names and group number at the beginning of the document. Submit the questionnaire solution in PDF format by uploading it to the platform under the corresponding task section before the deadline.
+
+In this questionnaire, we will work with the following time series:
+
+  * KO: The Coca-Cola Company (KO) stock (NYSE)
+  
+You can download the data using this code:
+
+```{r KO data, message=FALSE, warning=FALSE}
+library(quantmod)   # quant finc modeling and trading framework
+getSymbols("KO")
+```
+
+# 2 Questions
+
+## 2.1 Download Data
+
+**Task:** Download the time series. You may work with the complete dataset (from 2007 to the most recent trading session).
+
+**Solution**
+
+```{r ko colnames}
+#| code-fold: true
+
+cat('column names:', names(KO), '\n\n')  # columns
+```
+
+```{r ko summary}
+summary(KO)                              # quick summary stats
+ 
+chartSeries(KO)                          # financial chart
+```
+
+
+## 2.2 Graphical Representation
+
+**Task:** Create a graphical representation of the time series using the Adjusted Closing Price.
+
+**Solution**
+
+
+```{r ko plot}
+plot(KO$KO.Adjusted,
+     main = "Coca-Cola Closing Stock Price ($USD), Adjusted")
+```
+
+
+
+## 2.3 Compute Log-Returns
+
+**Task:** Compute the log-returns of the series. It is not necessary to model the mean (e.g., using an ARIMA model).
+
+**Solution**
+
+
+```{r ko log_returns}
+# returns: can do this directly using fQuant library
+KO$log_returns <- dailyReturn(KO$KO.Adjusted, 
+                               type = "log")
+
+# sanity check
+head(KO$log_returns)
+
+# plot
+plot(KO$log_returns,
+     main = "Coca-Cola Closing Stock Price ($USD), Adjusted") # looks stationary -- good
+```
+
+Before moving on to model fitting, we do some basic analysis of the returns.
+
+```{r}
+stats <- basicStats(KO$log_returns)
+stats[c("Skewness", "Kurtosis"), , drop = FALSE]
+```
+
+The time series is more skewed compared to the normal distribution, and it has fatter tails because of the excess kurtosis of around 11.
+
+```{r}
+par(mfrow = c(1, 2))
+acf(KO$log_returns^2, lwd = 2, lag.max = 50)
+pacf(KO$log_returns^2, lwd = 2, lag.max = 50)
+par(mfrow=c(1,1))
+```
+
+
+## 2.4 Model Fitting
+
+**Task:** Using the fGarch package, fit the following models to the log-returns: an ARCH(1) model, an ARCH(3) model, and a GARCH(1,1) model.
+
+**Solution**
+
+### 2.4.1 ARCH(1)
+
+```{r arch1, warning=FALSE}
+# fit a arch(1) [~garch(1,0)] model
+arch_1_md <- garchFit(formula = ~ garch(1, 0), 
+                data = KO$log_returns, 
+                trace = FALSE)
+
+par(mar=c(3,3,3,1))
+tsdiag(arch_1_md)
+```
+
+
+
+### 2.4.2 ARCH(3)
+
+```{r arch3}
+# fit a arch(3) [~garch(3,0)] model
+arch_3_md <- garchFit(formula = ~ garch(3, 0), 
+                data = KO$log_returns, 
+                trace = FALSE)
+
+par(mar=c(3,3,3,1))
+tsdiag(arch_3_md)
+```
+
+We see that [...]
+
+### 2.4.3 GARCH(1,1)
+
+```{r garch11}
+# fit a garch(1,1) model
+garch_11_md <- garchFit(formula = ~ garch(1, 1), 
+                data = KO$log_returns, 
+                trace = FALSE)
+
+par(mar=c(3,3,3,1))
+tsdiag(garch_11_md)
+```
+
+We see that [...]
+
+## 2.5 Fitted Model Expressions
+
+**Task:** Write the expression of each fitted model.
+
+**Solution**
+
+Note that the ARCH(p) model takes the form:
+
+$$
+\text{Mean Equation } \\ X_t = \mu + Z_t
+$$
+
+$$
+\text{Variance Equation } \\ \sigma_t^2 = \alpha_0 + \alpha_1 Z_{t-1}^2 + \alpha_2 Z_{t-2}^2 ... \alpha_{p}Z_{t-p}^2
+$$
+
+With the random error $Z_t$ being defined as:
+
+$$
+Z_t = \sqrt{\sigma_t^2} \varepsilon_t, \ \ \ \ \varepsilon_t \sim WN(0,1)
+$$
+
+### 2.5.1 ARCH(1)
+
+```{r, eval=FALSE}
+sum1 <- summary(arch_1_md)
+```
+
+
+```{r}
+# estimates column
+sum1$show$matcoef
+mu_estimate <- sum1$show$matcoef[1,1]
+omega_estimate <- sum1$show$matcoef[2,1]
+alpha1_estimate <- sum1$show$matcoef[3,1]
+```
+
+Plugging in our estimates, we get a expression of our fitted ARCH(1) model taking the form:
+
+$X_t = `r sprintf("%.6f", mu_estimate)` + Z_t$
+
+$\sigma_t^2 =  `r sprintf("%.6f", omega_estimate)` + `r sprintf("%.6f", alpha1_estimate)` Z_{t-1}^2$
+
+
+### 2.5.2 ARCH(3)
+
+```{r, eval=FALSE}
+sum2 <- summary(arch_3_md)
+```
+
+```{r}
+sum2$show$matcoef
+mu_estimate <- sum2$show$matcoef[1,1]
+omega_estimate <- sum2$show$matcoef[2,1]
+alpha1_estimate <- sum2$show$matcoef[3,1]
+alpha2_estimate <- sum2$show$matcoef[4,1]
+alpha3_estimate <- sum2$show$matcoef[5,1]
+```
+
+Plugging in our estimates, we get a expression of our fitted ARCH(1) model taking the form:
+
+$X_t =  `r sprintf("%.5f", mu_estimate)`  + Z_t$
+
+$\sigma_t^2 =  `r sprintf("%.5f", omega_estimate)`  +  `r sprintf("%.5f", alpha1_estimate)` Z_{t-1}^2 +  `r sprintf("%.5f", alpha2_estimate)` Z_{t-2}^2 +  `r sprintf("%.5f", alpha3_estimate)` Z_{t-3}^2$
+
+
+### 2.5.3 GARCH(1,1)
+
+Note that for GARCH(p,q) models, they take the form:
+
+$$
+\text{Mean Equation } \\ X_t = \mu + Z_t \\
+$$
+
+$$
+\text{Variance Equation } \\ \sigma_t^2 = \alpha_0 + \alpha_1 Z_{t-1}^2 + \alpha_2 Z_{t-2}^2  + \dots + \alpha_{p}Z_{t-p}^2 + \beta_1 \sigma_{t-1}^2 + \beta_2 \sigma_{t-2}^2 + \dots + \beta_q \sigma_{t-q}^2
+$$
+
+
+```{r, eval=FALSE}
+sum3<- summary(garch_11_md)
+```
+
+```{r}
+sum3$show$matcoef
+mu_estimate <- sum3$show$matcoef[1,1]
+omega_estimate <- sum3$show$matcoef[2,1]
+alpha1_estimate <- sum3$show$matcoef[3,1]
+beta1_estimate <- sum3$show$matcoef[4,1]
+```
+
+Plugging in our estimates, we get a expression of our fitted ARCH(1) model taking the form:
+
+$X_t = `r sprintf("%.5f", mu_estimate)` + Z_t$
+
+$\sigma_t^2 =  `r sprintf("%.5f", omega_estimate)` +  `r sprintf("%.5f", alpha1_estimate)` Z_{t-1}^2 +  `r sprintf("%.5f", beta1_estimate)` \sigma_{t-1}^2$
+
+
+## 2.6 Results & Best Fit
+
+**Task:** Analyze the diagnostic results and determine which of the three models provides the best fit
+
+**Solution**
+
+To decide which of the three models gives the best fit, we will compare information criteria (AIC/BIC), significance of coefficients, and robustness checks using Ljung-Box, Shapiro-Wilk, and Jarque-Bera tests.
+
+### 2.6.1 Information Criteria
+
+```{r ic comparisions}
+Models = c('ARCH(1)', 'ARCH(3)', 'GARCH(1,1)')
+
+df_results <- rbind(sum1$ics, 
+                    sum2$ics, 
+                    sum3$ics)
+
+df_results <- as.data.frame(df_results)
+
+rownames(df_results) <- Models
+df_results # table of results
+```
+
+It is important we only compare models using the same IC for each other; thus, we will consider all three model's AIC scores, and then all of their BIC scores:
+
+```{r}
+# aic
+df_results %>% 
+  select(AIC) %>% 
+  arrange(AIC)
+
+# bic
+df_results %>% 
+  select(BIC) %>% 
+  arrange(BIC)
+```
+
+For both information criteria, the GARCH(1,1) has the lowest score, which is preferred as it indicates the best balance of fit and parsimony.
+
+### 2.6.2 Coefficient Significance
+
+```{r}
+# ARCH(1)
+sum1$show$matcoef
+
+# ARCH(3)
+sum2$show$matcoef
+
+# GARCH(1,1)
+sum3$show$matcoef
+```
+
+For all three models, we do not contain any non-significant coefficients, suggesting that all three models fit the data well and that including more time lags is successful in helping to explain more of the data.
+
+### 2.6.3 Ljung-Box Test
+
+Furthermore, analyzing the Ljung-Box test on the squared standardized residuals for Model 3 yielded a p-value of 0.XX, confirming that the model successfully captured all conditional heteroskedasticity (ARCH effects). While Model 2 also passed the residual diagnostics, it had higher information criteria and a non-significant parameter, making Model 3 the superior fit.
+
+
+```{r}
+# ARCH(1)
+sum1$stat_tests[3:5,]
+sum1$stat_tests[6:8,]
+
+# ARCH(3)
+sum2$stat_tests[3:5,]
+sum2$stat_tests[6:8,]
+
+# GARCH(1,1)
+sum3$stat_tests[3:5,]
+sum3$stat_tests[6:8,]
+```
+
+We see that [...]
+
+```{r}
+# Interactive plotting menu
+plot(arch_3_md, which = 9)
+
+```
+
+
+We see that [...]
+
+### 2.6.4 Jarque-Beta/Shapiro-Wilk
+
+```{r}
+# ARCH(1)
+sum1$stat_tests[1:2,]
+
+# ARCH(3)
+sum2$stat_tests[1:2,]
+
+# GARCH(1,1)
+sum3$stat_tests[1:2,]
+
+```
+
+### 2.6.5 LM Arch Test
+
+The LM Arch test is a hypothesis test under the null that $H_0:$ autocorrelated squared residuals. If we reject the null at the 5% significance level ($\alpha = 0.05$), then then this suggests that autoregressive conditional heteroskedasticity exists in our model, and we should find a better model to capture more of the volatility structure. If we fail to reject the null, then
+
+```{r}
+# ARCH(1)
+sum1$stat_tests[9,]
+
+# ARCH(3)
+sum2$stat_tests[9,]
+
+# GARCH(1,1)
+sum3$stat_tests[9,]
+```
+
+### 2.6.6 Model Decision
+
+
+
