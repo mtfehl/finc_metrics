@@ -101,14 +101,14 @@ plot(KO$log_returns,
 
 Before moving on to model fitting, we do some basic analysis of the returns.
 
-```{r}
+```{r normality check}
 stats <- basicStats(KO$log_returns)
 stats[c("Skewness", "Kurtosis"), , drop = FALSE]
 ```
 
 The time series is more skewed compared to the normal distribution, and it has fatter tails because of the excess kurtosis of around 11.
 
-```{r}
+```{r logreturns2 check}
 par(mfrow = c(1, 2))
 acf(KO$log_returns^2, lwd = 2, lag.max = 50)
 pacf(KO$log_returns^2, lwd = 2, lag.max = 50)
@@ -188,12 +188,12 @@ $$
 
 ### 2.5.1 ARCH(1)
 
-```{r, eval=FALSE}
+```{r arch1 summary, output='none'}
 sum1 <- summary(arch_1_md)
 ```
 
 
-```{r}
+```{r arch1 results}
 # estimates column
 sum1$show$matcoef
 mu_estimate <- sum1$show$matcoef[1,1]
@@ -210,11 +210,11 @@ $\sigma_t^2 =  `r sprintf("%.6f", omega_estimate)` + `r sprintf("%.6f", alpha1_e
 
 ### 2.5.2 ARCH(3)
 
-```{r, eval=FALSE}
+```{r arch2 summary, output='none'}
 sum2 <- summary(arch_3_md)
 ```
 
-```{r}
+```{r arch2 results}
 sum2$show$matcoef
 mu_estimate <- sum2$show$matcoef[1,1]
 omega_estimate <- sum2$show$matcoef[2,1]
@@ -243,11 +243,11 @@ $$
 $$
 
 
-```{r, eval=FALSE}
+```{r garch summary, output='none'}
 sum3<- summary(garch_11_md)
 ```
 
-```{r}
+```{r garch results}
 sum3$show$matcoef
 mu_estimate <- sum3$show$matcoef[1,1]
 omega_estimate <- sum3$show$matcoef[2,1]
@@ -287,7 +287,7 @@ df_results # table of results
 
 It is important we only compare models using the same IC for each other; thus, we will consider all three model's AIC scores, and then all of their BIC scores:
 
-```{r}
+```{r aic bic}
 # aic
 df_results %>% 
   select(AIC) %>% 
@@ -303,7 +303,7 @@ For both information criteria, the GARCH(1,1) has the lowest score, which is pre
 
 ### 2.6.2 Coefficient Significance
 
-```{r}
+```{r coeffs}
 # ARCH(1)
 sum1$show$matcoef
 
@@ -321,7 +321,7 @@ For all three models, we do not contain any non-significant coefficients, sugges
 Furthermore, analyzing the Ljung-Box test on the squared standardized residuals for Model 3 yielded a p-value of 0.XX, confirming that the model successfully captured all conditional heteroskedasticity (ARCH effects). While Model 2 also passed the residual diagnostics, it had higher information criteria and a non-significant parameter, making Model 3 the superior fit.
 
 
-```{r}
+```{r ljungbox results}
 # ARCH(1)
 sum1$stat_tests[3:5,]
 sum1$stat_tests[6:8,]
@@ -337,7 +337,7 @@ sum3$stat_tests[6:8,]
 
 We see that [...]
 
-```{r}
+```{r plot9}
 # Interactive plotting menu
 plot(arch_3_md, which = 9)
 
@@ -348,7 +348,7 @@ We see that [...]
 
 ### 2.6.4 Jarque-Beta/Shapiro-Wilk
 
-```{r}
+```{r jb sw}
 # ARCH(1)
 sum1$stat_tests[1:2,]
 
@@ -364,7 +364,7 @@ sum3$stat_tests[1:2,]
 
 The LM Arch test is a hypothesis test under the null that $H_0:$ autocorrelated squared residuals. If we reject the null at the 5% significance level ($\alpha = 0.05$), then then this suggests that autoregressive conditional heteroskedasticity exists in our model, and we should find a better model to capture more of the volatility structure. If we fail to reject the null, then
 
-```{r}
+```{r lm arch}
 # ARCH(1)
 sum1$stat_tests[9,]
 
