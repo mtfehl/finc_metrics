@@ -9,6 +9,8 @@
 /.quarto/
 **/*.quarto_ipynb
 site_libs/
+*_cache/
+*.rmarkdown
 
 # === Data Files ===
 data/
