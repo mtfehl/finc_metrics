@@ -14,7 +14,7 @@ format:
     documentclass: article
     geometry: margin=1in
     highlight-style: github
-image: "/images/placeholder.png"
+image: "/images/ps03_fin_chart.png"
 execute:
   cache: true
 ---
