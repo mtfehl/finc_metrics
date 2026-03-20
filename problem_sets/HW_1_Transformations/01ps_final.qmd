@@ -6,7 +6,7 @@ date: 01-22-2026
 problem-set: true
 format:
   html:
-    embed-resources: true
+    embed-resources: false
 image: "/images/mean-var.png"
 execute:
   cache: true

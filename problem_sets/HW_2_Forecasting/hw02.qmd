@@ -6,7 +6,7 @@ date: 02-16-2026
 problem-set: true
 format:
   html:
-    embed-resources: true
+    embed-resources: false
 image: "/images/ps02_prediction.png"
 execute:
   cache: true
