@@ -1,6 +1,6 @@
 ---
 title: "PS3: ARCH, GARCH"
-description: ""
+description: "Financial Data, Checking for heteroskedastic volatility, and ARCH & GARCH Models"
 author: "Michael Fehl, Francesco Zucca, Giuseppe Lista"
 date: 03-08-2026
 problem-set: true
