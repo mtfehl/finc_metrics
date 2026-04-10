@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-03-17">
+<meta name="description" content="VaR, Expected Shortfall, and quantile regression">
+
+<title>Market Risk – Michael Fehl</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-e4615fff4d5566f0adaf6c91ca211490.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-dark-feaa1f60ed04146add738bf757f58d9a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-dark"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = true;
+    const darkModeDefault = authorPrefersDark;
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Michael Fehl</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://mtfehl.github.io/econ_portfolio/"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://mtfehl.github.io/econ_portfolio/projects.html"> 
+<span class="menu-text">Portfolio</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-classes" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Classes</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-classes">    
+        <li>
+    <a class="dropdown-item" href="https://mtfehl.github.io/econ_portfolio/classes.html">
+ <span class="dropdown-text">Home</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mtfehl.github.io/geospatial/">
+ <span class="dropdown-text">Geospatial</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mtfehl.github.io/finc_metrics/">
+ <span class="dropdown-text">Econometrics: Time Series</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mtfehl.github.io/networks/">
+ <span class="dropdown-text">Networks: Concepts &amp; Algorithms</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mtfehl.github.io/econometrics2/">
+ <span class="dropdown-text">Econometrics: Panel Data</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="https://mtfehl.github.io/econ_portfolio/about.html"> 
+<span class="menu-text">About Me</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://mtfehl.github.io/econ_portfolio/file/Fehl_Michael.pdf"> 
+<span class="menu-text">CV</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/mtfehl"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://linkedin.com/in/michael-t-fehl"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="mailto:michaelthomasfehl@gmail.com"> <i class="bi bi-envelope" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Market Risk</li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Classes</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econ_portfolio/classes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Directory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Geospatial Data Science &amp; Economic Spatial Models</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/geospatial/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Class Notes</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/geospatial/notes/01/01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Intro: Vector Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/geospatial/notes/02/02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">st_filter() &amp; st_intersect()</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Problem Sets</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/geospatial/problem_sets/01ps/01ps.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PS01: Vietnam Road Maps</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Projects</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/geospatial/projects/earthquake/pj01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Project: Earthquakes and Remittances</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Econometrics: Time Series</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/finc_metrics/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
+ <span class="menu-text">Class Notes</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/finc_metrics/notes/01/intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Intro: Time Series &amp; Stationarity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/finc_metrics/notes/02/models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Models: AR(p), MA(q), ARMA(p,q)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
+ <span class="menu-text">Problem Sets</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/finc_metrics/problem_sets/HW_1_Transformations/01ps_final.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PS01: Non-Stationary Transformations</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
+ <span class="menu-text">Projects</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/finc_metrics/projects/Project Geospatial/Project Geospatial/geospatial.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Project 01</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+ <span class="menu-text">Networks: Concepts &amp; Algorithms</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/networks/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
+ <span class="menu-text">Class Notes</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/networks/notes/01/01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Intro to Networks</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/networks/notes/02/02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">placeholder</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false">
+ <span class="menu-text">Problem Sets</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/networks/problem_sets/ps01/problem_set.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PS01: placeholder</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/networks/problem_sets/ps02/ps02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PS02: placeholder</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false">
+ <span class="menu-text">Projects</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-13" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/networks/projects/project1/01project.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Project 1</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false">
+ <span class="menu-text">Econometrics: Panel Data</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-14" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="false">
+ <span class="menu-text">Class Notes</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-15" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/pooled_ols/pols.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pooled OLS</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/random_effects/re.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Random Effects</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/fixed_effect/fe.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Fixed Effects</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/first_diff/fd.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">First Differences</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/gmm/gmm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GMM</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/anderson_arellano/abond.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Anderson-Hsiao &amp; Arellano-Bond</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/mle/mle.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">MLE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/binary_choice/logit_probit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Binary Choice Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/multinomial/multinomial.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Multinomial Models</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="false">
+ <span class="menu-text">Problem Sets</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-16" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Problem_Sets/PS01/ps01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PS01: POLS-RE-FE-FD</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Problem_Sets/PS02/ps02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PS02: RE-FE-FD-Arellano-Bond</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="false">
+ <span class="menu-text">Projects</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-17" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Projects/earthquake/pj01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Project: Earthquakes and Remittances</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#financial-risk" id="toc-financial-risk" class="nav-link active" data-scroll-target="#financial-risk">Financial Risk</a></li>
+  <li><a href="#returns" id="toc-returns" class="nav-link" data-scroll-target="#returns">Returns</a></li>
+  <li><a href="#value-at-risk-var" id="toc-value-at-risk-var" class="nav-link" data-scroll-target="#value-at-risk-var">Value at Risk (VaR)</a>
+  <ul>
+  <li><a href="#var-under-distributional-assumptions" id="toc-var-under-distributional-assumptions" class="nav-link" data-scroll-target="#var-under-distributional-assumptions">VaR under Distributional Assumptions</a></li>
+  <li><a href="#multi-period-var" id="toc-multi-period-var" class="nav-link" data-scroll-target="#multi-period-var">Multi-Period VaR</a></li>
+  <li><a href="#approaches-to-var-estimation" id="toc-approaches-to-var-estimation" class="nav-link" data-scroll-target="#approaches-to-var-estimation">Approaches to VaR Estimation</a></li>
+  <li><a href="#var-limitations" id="toc-var-limitations" class="nav-link" data-scroll-target="#var-limitations">VaR Limitations</a></li>
+  </ul></li>
+  <li><a href="#expected-shortfall-es" id="toc-expected-shortfall-es" class="nav-link" data-scroll-target="#expected-shortfall-es">Expected Shortfall (ES)</a>
+  <ul>
+  <li><a href="#coherence" id="toc-coherence" class="nav-link" data-scroll-target="#coherence">Coherence</a></li>
+  <li><a href="#closed-form-solutions" id="toc-closed-form-solutions" class="nav-link" data-scroll-target="#closed-form-solutions">Closed-Form Solutions</a></li>
+  </ul></li>
+  <li><a href="#dynamic-var-via-garch" id="toc-dynamic-var-via-garch" class="nav-link" data-scroll-target="#dynamic-var-via-garch">Dynamic VaR via GARCH</a></li>
+  <li><a href="#quantile-regression-for-var" id="toc-quantile-regression-for-var" class="nav-link" data-scroll-target="#quantile-regression-for-var">Quantile Regression for VaR</a>
+  <ul>
+  <li><a href="#estimation" id="toc-estimation" class="nav-link" data-scroll-target="#estimation">Estimation</a></li>
+  </ul></li>
+  <li><a href="#sec-appendix-09" id="toc-sec-appendix-09" class="nav-link" data-scroll-target="#sec-appendix-09">Appendix: Key Functions</a>
+  <ul>
+  <li><a href="#quantile-and-mean-empirical-var-and-es" id="toc-quantile-and-mean-empirical-var-and-es" class="nav-link" data-scroll-target="#quantile-and-mean-empirical-var-and-es"><code>quantile()</code> and <code>mean()</code>: Empirical VaR and ES</a></li>
+  <li><a href="#ugarchforecast-extracting-garch-based-var" id="toc-ugarchforecast-extracting-garch-based-var" class="nav-link" data-scroll-target="#ugarchforecast-extracting-garch-based-var"><code>ugarchforecast()</code>: Extracting GARCH-based VaR</a></li>
+  <li><a href="#rq-quantile-regression" id="toc-rq-quantile-regression" class="nav-link" data-scroll-target="#rq-quantile-regression"><code>rq()</code>: Quantile Regression</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Market Risk</h1>
+</div>
+
+<div>
+  <div class="description">
+    VaR, Expected Shortfall, and quantile regression
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 17, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="financial-risk" class="level1">
+<h1>Financial Risk</h1>
+<p>The Basel Accord classifies financial risk into three broad categories:</p>
+<ul>
+<li><strong>Credit risk</strong>: risk of counterparty default</li>
+<li><strong>Market risk</strong>: risk from changes in stock prices, interest rates, FX, and commodity prices</li>
+<li><strong>Operational risk</strong>: legal, political, and process risks</li>
+</ul>
+<p>We focus on <strong>market risk</strong>: data are high quality, the concepts are well-understood, and the ideas transfer to other risk types.</p>
+<p><strong>Risk measure</strong>: a summary statistic of the loss distribution <span class="math inline">\(L_t(l)\)</span>, where <span class="math inline">\(L_t(l)\)</span> is the loss of a financial position over holding period <span class="math inline">\(l\)</span> starting at <span class="math inline">\(t\)</span>. All risk measures are functions of this distribution.</p>
+</section>
+<section id="returns" class="level1">
+<h1>Returns</h1>
+<p>The standard transformation for financial prices <span class="math inline">\(P_t\)</span> is the log return:</p>
+<p><span class="math display">\[r_t = 100(1 - B)\log(P_t) = 100\log\left(\frac{P_t}{P_{t-1}}\right) \approx \frac{P_t - P_{t-1}}{P_{t-1}} \times 100\]</span></p>
+<p>Log returns are approximately normally distributed for short horizons, additive over time, and stationary. The loss variable is <span class="math inline">\(L_t = -r_t\)</span> (losses are positive).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="market_risk_files/figure-html/returns-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="value-at-risk-var" class="level1">
+<h1>Value at Risk (VaR)</h1>
+<p><strong>Value at Risk</strong> at confidence level <span class="math inline">\(1-p\)</span>: the minimum loss that is exceeded with probability <span class="math inline">\(p\)</span> over holding period <span class="math inline">\(l\)</span>.</p>
+<p>Let <span class="math inline">\(F_l(x)\)</span> be the CDF of <span class="math inline">\(L_t(l)\)</span>:</p>
+<p><span class="math display">\[VaR_{1-p} = \inf\{x \mid F_l(x) \geq 1-p\} \implies P(L_t(l) \leq VaR_{1-p}) \geq 1-p\]</span></p>
+<p>Typical parameters: - Tail probability <span class="math inline">\(p\)</span>: 0.01 for risk management, 0.001 for stress testing - Holding period <span class="math inline">\(l\)</span>: 1 day or 10 days for market risk; 1 year for credit risk</p>
+<p>So <span class="math inline">\(VaR_{0.99}\)</span> is the loss threshold you expect to exceed only 1% of the time.</p>
+<section id="var-under-distributional-assumptions" class="level2">
+<h2 class="anchored" data-anchor-id="var-under-distributional-assumptions">VaR under Distributional Assumptions</h2>
+<p><strong>Normal</strong>: if <span class="math inline">\(L_t \sim N(\mu_t, \sigma_t^2)\)</span>:</p>
+<p><span class="math display">\[VaR_{1-p} = \mu_t + z_{1-p} \sigma_t\]</span></p>
+<p>where <span class="math inline">\(z_{1-p}\)</span> is the <span class="math inline">\((1-p)\)</span>-th quantile of <span class="math inline">\(N(0,1)\)</span>.</p>
+<p><strong>Student-t</strong>: if <span class="math inline">\(Y_t = (L_t - \mu_t)/\sigma_t\)</span> is Student-t with <span class="math inline">\(\nu\)</span> degrees of freedom:</p>
+<p><span class="math display">\[VaR_{1-p} = \mu_t + t_{\nu, 1-p} \sigma_t\]</span></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># empirical distribution of DAX returns</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>r_vec <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(r_dax)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>mu    <span class="ot">&lt;-</span> <span class="fu">mean</span>(r_vec)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>sig   <span class="ot">&lt;-</span> <span class="fu">sd</span>(r_vec)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 99% VaR under normality (loss = -return, so use left tail of return)</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>p   <span class="ot">&lt;-</span> <span class="fl">0.01</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>var_norm  <span class="ot">&lt;-</span> mu <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> p) <span class="sc">*</span> sig     <span class="co"># VaR on the loss scale</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>var_emp   <span class="ot">&lt;-</span> <span class="fu">quantile</span>(<span class="sc">-</span>r_vec, <span class="dv">1</span> <span class="sc">-</span> p)     <span class="co"># empirical VaR</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Normal VaR (99%):"</span>, <span class="fu">round</span>(var_norm, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Normal VaR (99%): -2.3311 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Empirical VaR (99%):"</span>, <span class="fu">round</span>(var_emp, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Empirical VaR (99%): 2.7753 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="market_risk_files/figure-html/var-plot-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="multi-period-var" class="level2">
+<h2 class="anchored" data-anchor-id="multi-period-var">Multi-Period VaR</h2>
+<p>VaR is typically computed at a 1-day horizon and scaled to longer horizons using the <strong>square-root-of-time rule</strong>. If returns are iid with variance <span class="math inline">\(\sigma^2\)</span>, the <span class="math inline">\(h\)</span>-day loss has variance <span class="math inline">\(h\sigma^2\)</span>, so:</p>
+<p><span class="math display">\[VaR_{1-p}^{(h)} = VaR_{1-p}^{(1)} \times \sqrt{h}\]</span></p>
+<p>For example, the Basel Accord requires a 10-day VaR, obtained from the 1-day VaR by multiplying by <span class="math inline">\(\sqrt{10} \approx 3.16\)</span>.</p>
+<p>The square-root rule is exact only under the iid assumption. With volatility clustering (GARCH effects), it overstates the 10-day VaR when current volatility is below the long-run level and understates it when volatility is elevated. In practice, GARCH multi-step forecasts are preferred for accurate scaling.</p>
+</section>
+<section id="approaches-to-var-estimation" class="level2">
+<h2 class="anchored" data-anchor-id="approaches-to-var-estimation">Approaches to VaR Estimation</h2>
+<p>Three methods are used in practice:</p>
+<p><strong>1. Parametric (analytical)</strong>: assume <span class="math inline">\(L_t \sim F(\mu_t, \sigma_t^2)\)</span> (Normal or Student-t), estimate the parameters, and plug into the closed-form <span class="math inline">\(VaR_{1-p} = \mu_t + q_p \sigma_t\)</span>. Fast, but relies heavily on the distributional assumption. Normal VaR systematically understates tail risk when returns are fat-tailed.</p>
+<p><strong>2. Historical simulation</strong>: use the empirical distribution of the past <span class="math inline">\(T\)</span> returns directly. Sort the observed losses and take the <span class="math inline">\((1-p) \times T\)</span> order statistic as VaR. No distributional assumption needed, but assumes the past distribution is representative of the future. Does not adapt to changes in current volatility.</p>
+<p><strong>3. Filtered historical simulation (GARCH)</strong>: fit a GARCH model to standardize returns <span class="math inline">\(\hat{\epsilon}_t = r_t / \hat{\sigma}_t\)</span>, then apply historical simulation to the standardized residuals, and scale back by the forecast <span class="math inline">\(\hat{\sigma}_{T+1}\)</span>. Combines the flexibility of historical simulation with the adaptivity of GARCH.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>loss <span class="ot">&lt;-</span> <span class="sc">-</span>r_vec</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># historical simulation: p-th quantile of empirical loss distribution</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>var_hs <span class="ot">&lt;-</span> <span class="fu">quantile</span>(loss, <span class="dv">1</span> <span class="sc">-</span> p)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>es_hs  <span class="ot">&lt;-</span> <span class="fu">mean</span>(loss[loss <span class="sc">&gt;</span> var_hs])</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Historical VaR (99%):"</span>, <span class="fu">round</span>(var_hs, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Historical VaR (99%): 2.7753 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Historical ES  (99%):"</span>, <span class="fu">round</span>(es_hs,  <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Historical ES  (99%): 3.7036 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Normal VaR     (99%):"</span>, <span class="fu">round</span>(var_norm, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Normal VaR     (99%): -2.3311 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Ratio (HS/Normal):   "</span>, <span class="fu">round</span>(var_hs <span class="sc">/</span> var_norm, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Ratio (HS/Normal):    -1.191 </code></pre>
+</div>
+</div>
+<p>Historical simulation VaR is higher than Normal VaR for DAX returns because the empirical distribution has fatter tails than the normal assumption allows.</p>
+</section>
+<section id="var-limitations" class="level2">
+<h2 class="anchored" data-anchor-id="var-limitations">VaR Limitations</h2>
+<ul>
+<li><strong>Tail blindness</strong>: VaR says nothing about how severe losses are beyond the threshold. A portfolio with a 1% chance of a 5% loss and one with a 1% chance of a 50% loss have the same VaR.</li>
+<li><strong>Not subadditive in general</strong>: for non-normal distributions, it is possible that <span class="math inline">\(VaR(X + Y) &gt; VaR(X) + VaR(Y)\)</span>. Diversification can appear to increase VaR, which contradicts economic intuition. VaR only satisfies subadditivity when losses are jointly elliptically distributed (e.g., multivariate normal).</li>
+<li><strong>Threshold only</strong>: a position with many losses just below VaR is treated the same as one with no such losses.</li>
+</ul>
+</section>
+</section>
+<section id="expected-shortfall-es" class="level1">
+<h1>Expected Shortfall (ES)</h1>
+<p><strong>Expected Shortfall</strong> (also called Tail VaR or Conditional VaR, CVaR): the expected loss given that the loss exceeds VaR:</p>
+<p><span class="math display">\[ES_{1-p} = E(L_t \mid L_t &gt; VaR_{1-p}) = \frac{\int_{VaR}^{\infty} x f(x) \, dx}{P(L_t &gt; VaR_{1-p})} = \frac{1}{p}\int_{1-p}^{1} VaR_u \, du\]</span></p>
+<p>The second representation makes clear that ES is a weighted average of all VaRs in the tail, from level <span class="math inline">\(1-p\)</span> up to 1. ES always satisfies <span class="math inline">\(ES_{1-p} \geq VaR_{1-p}\)</span>: it is the average of all losses beyond the VaR threshold, so it must be at least as large.</p>
+<section id="coherence" class="level2">
+<h2 class="anchored" data-anchor-id="coherence">Coherence</h2>
+<p>A risk measure is <strong>coherent</strong> (Artzner et al., 1999) if it satisfies four axioms: monotonicity, translation invariance, positive homogeneity, and subadditivity. ES satisfies all four. VaR satisfies the first three but fails subadditivity for non-elliptical distributions (as shown in the limitations above).</p>
+<p>The practical consequence: ES correctly penalizes concentration of tail risk. If two positions each have VaR of 10, ES recognizes that combining them may still produce extreme tail losses, whereas VaR naively implies the combined position has VaR <span class="math inline">\(\leq 20\)</span>. ES makes diversification credit accurate.</p>
+<p>Because of this, the Basel III/IV framework shifted from VaR to ES (at the 97.5% level) as the primary regulatory risk measure for market risk capital requirements.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="market_risk_files/figure-html/es-plot-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="closed-form-solutions" class="level2">
+<h2 class="anchored" data-anchor-id="closed-form-solutions">Closed-Form Solutions</h2>
+<p><strong>Normal</strong>: <span class="math inline">\(ES_{1-p} = \mu_t + \frac{f(z_{1-p})}{p} \sigma_t\)</span> where <span class="math inline">\(f\)</span> is the <span class="math inline">\(N(0,1)\)</span> pdf.</p>
+<p><strong>Student-t</strong> with <span class="math inline">\(\nu\)</span> df: <span class="math inline">\(ES_{1-p} = \mu_t + \sigma_t \frac{f_\nu(t_{\nu,1-p})}{p} \cdot \frac{\nu + t_{\nu,1-p}^2}{\nu - 1}\)</span></p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Normal ES (99%): 2.8106 </code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Empirical ES (99%): 3.7036 </code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="dynamic-var-via-garch" class="level1">
+<h1>Dynamic VaR via GARCH</h1>
+<p>Historical simulation and parametric VaR treat the loss distribution as static. In reality, the conditional distribution of returns is time-varying: volatility clusters. GARCH gives a way to obtain a time-adaptive VaR.</p>
+<p>The GARCH-based VaR at time <span class="math inline">\(T+1\)</span> is:</p>
+<p><span class="math display">\[VaR_{T+1,\, 1-p} = -\hat{\mu}_{T+1|T} - q_p^{(\text{innov})} \cdot \hat{\sigma}_{T+1|T}\]</span></p>
+<p>where <span class="math inline">\(q_p^{(\text{innov})}\)</span> is the <span class="math inline">\(p\)</span>-th quantile of the innovation distribution (e.g., <span class="math inline">\(q_p = \Phi^{-1}(p)\)</span> for Normal, or <span class="math inline">\(t_{\nu,p}\)</span> for Student-t). The negative sign converts from the return scale to the loss scale.</p>
+<p>Procedure:</p>
+<ol type="1">
+<li>Fit GARCH(1,1) to returns with <code>rugarch::ugarchspec()</code> + <code>ugarchfit()</code></li>
+<li>Obtain 1-step-ahead <span class="math inline">\(\hat{\mu}_{T+1|T}\)</span> and <span class="math inline">\(\hat{\sigma}_{T+1|T}\)</span> via <code>ugarchforecast()</code></li>
+<li>Apply the quantile of the fitted innovation distribution to get VaR</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>spec_rv <span class="ot">&lt;-</span> <span class="fu">ugarchspec</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">variance.model     =</span> <span class="fu">list</span>(<span class="at">model =</span> <span class="st">"sGARCH"</span>, <span class="at">garchOrder =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>)),</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">mean.model         =</span> <span class="fu">list</span>(<span class="at">armaOrder =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>), <span class="at">include.mean =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">distribution.model =</span> <span class="st">"std"</span>   <span class="co"># Student-t innovations for heavy tails</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>fit_rv <span class="ot">&lt;-</span> <span class="fu">ugarchfit</span>(spec_rv, <span class="at">data =</span> r_vec)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 1-step-ahead conditional mean and volatility</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>fc_rv   <span class="ot">&lt;-</span> <span class="fu">ugarchforecast</span>(fit_rv, <span class="at">n.ahead =</span> <span class="dv">1</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>mu_fc   <span class="ot">&lt;-</span> <span class="fu">fitted</span>(fc_rv)[<span class="dv">1</span>]</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>sig_fc  <span class="ot">&lt;-</span> <span class="fu">sigma</span>(fc_rv)[<span class="dv">1</span>]</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>nu_hat  <span class="ot">&lt;-</span> <span class="fu">coef</span>(fit_rv)[<span class="st">"shape"</span>]   <span class="co"># estimated degrees of freedom</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="co"># VaR: negative of the p-th quantile of the conditional distribution</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>var_garch <span class="ot">&lt;-</span> <span class="sc">-</span>(mu_fc <span class="sc">+</span> <span class="fu">qt</span>(p, <span class="at">df =</span> nu_hat) <span class="sc">*</span> sig_fc)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"GARCH-t VaR (99%, 1-step):"</span>, <span class="fu">round</span>(var_garch, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>GARCH-t VaR (99%, 1-step): 5.107 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Conditional sigma (%):"</span>, <span class="fu">round</span>(sig_fc, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Conditional sigma (%): 1.6265 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Estimated df (nu):"</span>, <span class="fu">round</span>(nu_hat, <span class="dv">2</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Estimated df (nu): 5.93 </code></pre>
+</div>
+</div>
+<p>The GARCH VaR adjusts dynamically: on calm days, <span class="math inline">\(\hat{\sigma}_{T+1}\)</span> is low and VaR is modest; after a market shock, <span class="math inline">\(\hat{\sigma}_{T+1}\)</span> is elevated and VaR rises immediately. This is the key advantage over historical simulation, which updates slowly as old extreme returns enter or leave the rolling window.</p>
+</section>
+<section id="quantile-regression-for-var" class="level1">
+<h1>Quantile Regression for VaR</h1>
+<p>Rather than imposing a distributional assumption, <strong>quantile regression</strong> (Koenker and Bassett, 1978) directly estimates the <span class="math inline">\(p\)</span>-th conditional quantile of returns as a linear function of predictors:</p>
+<p><span class="math display">\[Q_p(r_t \mid \mathcal{I}_{t-1}) = \beta_0^p + \beta_1^p X_{t-1}^{(1)} + \cdots + \beta_k^p X_{t-1}^{(k)}\]</span></p>
+<p>The VaR at time <span class="math inline">\(t\)</span> is then <span class="math inline">\(VaR_{t,\,1-p} = -Q_p(r_t \mid \mathcal{I}_{t-1})\)</span>. Each quantile level <span class="math inline">\(p\)</span> has its own coefficient vector <span class="math inline">\(\beta^p\)</span>.</p>
+<section id="estimation" class="level2">
+<h2 class="anchored" data-anchor-id="estimation">Estimation</h2>
+<p>The <span class="math inline">\(p\)</span>-th quantile is the value that minimizes expected asymmetric absolute loss. The estimator solves:</p>
+<p><span class="math display">\[\hat{\beta}^p = \arg\min_\beta \frac{1}{T} \sum_{t=1}^T \rho_p\!\left(r_t - \mathbf{x}_{t-1}^\top \beta^p\right)\]</span></p>
+<p>where <span class="math inline">\(\rho_p(e) = e\,(p - \mathbb{1}_{\{e &lt; 0\}})\)</span> is the <strong>check function</strong> (tick loss). For <span class="math inline">\(e &gt; 0\)</span> (under-prediction), the penalty is <span class="math inline">\(p \cdot e\)</span>. For <span class="math inline">\(e &lt; 0\)</span> (over-prediction), the penalty is <span class="math inline">\((1-p)|e|\)</span>. At <span class="math inline">\(p = 0.01\)</span>, under-predicting loss is penalized only 1/99 as heavily as over-predicting: the estimator is pulled toward capturing the left tail.</p>
+<p>The first-order condition is <span class="math inline">\(\mathbb{E}[\rho_p'(e)] = \mathbb{E}[p - \mathbb{1}_{\{e &lt; 0\}}] = 0\)</span>, which gives <span class="math inline">\(P(e &lt; 0) = p\)</span>, confirming that the minimizer is the <span class="math inline">\(p\)</span>-th quantile. Solved as a linear programming problem; <code>quantreg::rq(formula, tau = p)</code> handles this.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>n_obs <span class="ot">&lt;-</span> <span class="fu">length</span>(r_vec) <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>r_y   <span class="ot">&lt;-</span> r_vec[<span class="dv">2</span><span class="sc">:</span>(n_obs <span class="sc">+</span> <span class="dv">1</span>)]   <span class="co"># r_t</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>r_x   <span class="ot">&lt;-</span> r_vec[<span class="dv">1</span><span class="sc">:</span>n_obs]         <span class="co"># r_{t-1}</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="co"># quantile regression at p = 0.01 (1% tail of the return distribution)</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>qr_fit <span class="ot">&lt;-</span> <span class="fu">rq</span>(r_y <span class="sc">~</span> r_x, <span class="at">tau =</span> <span class="fl">0.01</span>)</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(qr_fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call: rq(formula = r_y ~ r_x, tau = 0.01)
+
+tau: [1] 0.01
+
+Coefficients:
+            Value     Std. Error t value   Pr(&gt;|t|) 
+(Intercept)  -2.67102   0.17287  -15.45100   0.00000
+r_x           0.26420   0.12601    2.09674   0.03615</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="market_risk_files/figure-html/qr-var-plot-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Quantile regression is fully distribution-free and adapts to any conditional predictors. The model can include lagged returns, lagged squared returns (<span class="math inline">\(r_{t-1}^2\)</span> as a proxy for volatility), or any risk factors. An extension called <strong>CAViaR</strong> (Conditional Autoregressive VaR, Engle and Manganelli 2004) treats the quantile itself as a latent autoregressive process:</p>
+<p><span class="math display">\[Q_{p,t} = \beta_0 + \beta_1 Q_{p,t-1} + \beta_2 |r_{t-1}|\]</span></p>
+<p>mimicking the persistence of GARCH volatility in the VaR directly, without requiring a full distributional model.</p>
+<hr>
+</section>
+</section>
+<section id="sec-appendix-09" class="level1">
+<h1>Appendix: Key Functions</h1>
+<section id="quantile-and-mean-empirical-var-and-es" class="level2">
+<h2 class="anchored" data-anchor-id="quantile-and-mean-empirical-var-and-es"><code>quantile()</code> and <code>mean()</code>: Empirical VaR and ES</h2>
+<p>Historical simulation requires only base R.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>loss <span class="ot">&lt;-</span> <span class="sc">-</span>r_vec</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>p    <span class="ot">&lt;-</span> <span class="fl">0.01</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>var_hs_app <span class="ot">&lt;-</span> <span class="fu">quantile</span>(loss, <span class="dv">1</span> <span class="sc">-</span> p)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>es_hs_app  <span class="ot">&lt;-</span> <span class="fu">mean</span>(loss[loss <span class="sc">&gt;</span> var_hs_app])</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"VaR (99%, historical):"</span>, <span class="fu">round</span>(var_hs_app, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>VaR (99%, historical): 2.7753 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"ES  (99%, historical):"</span>, <span class="fu">round</span>(es_hs_app,  <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ES  (99%, historical): 3.7036 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"ES &gt; VaR?"</span>, es_hs_app <span class="sc">&gt;</span> var_hs_app, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ES &gt; VaR? TRUE </code></pre>
+</div>
+</div>
+</section>
+<section id="ugarchforecast-extracting-garch-based-var" class="level2">
+<h2 class="anchored" data-anchor-id="ugarchforecast-extracting-garch-based-var"><code>ugarchforecast()</code>: Extracting GARCH-based VaR</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fit is already in environment from {r garch-var}</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>fc      <span class="ot">&lt;-</span> <span class="fu">ugarchforecast</span>(fit_rv, <span class="at">n.ahead =</span> <span class="dv">1</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>mu_1    <span class="ot">&lt;-</span> <span class="fu">fitted</span>(fc)[<span class="dv">1</span>]</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>sig_1   <span class="ot">&lt;-</span> <span class="fu">sigma</span>(fc)[<span class="dv">1</span>]</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>nu_fit  <span class="ot">&lt;-</span> <span class="fu">coef</span>(fit_rv)[<span class="st">"shape"</span>]</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Normal VaR vs Student-t VaR</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>var_norm_g <span class="ot">&lt;-</span> <span class="sc">-</span>(mu_1 <span class="sc">+</span> <span class="fu">qnorm</span>(p)    <span class="sc">*</span> sig_1)</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>var_t_g    <span class="ot">&lt;-</span> <span class="sc">-</span>(mu_1 <span class="sc">+</span> <span class="fu">qt</span>(p, <span class="at">df =</span> nu_fit) <span class="sc">*</span> sig_1)</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"GARCH Normal VaR (99%):"</span>, <span class="fu">round</span>(var_norm_g, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>GARCH Normal VaR (99%): 3.7604 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"GARCH-t    VaR (99%):"</span>,   <span class="fu">round</span>(var_t_g,    <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>GARCH-t    VaR (99%): 5.107 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Student-t is more conservative:"</span>, var_t_g <span class="sc">&gt;</span> var_norm_g, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Student-t is more conservative: TRUE </code></pre>
+</div>
+</div>
+</section>
+<section id="rq-quantile-regression" class="level2">
+<h2 class="anchored" data-anchor-id="rq-quantile-regression"><code>rq()</code>: Quantile Regression</h2>
+<p><code>quantreg::rq(formula, tau = p)</code> fits quantile regression at level <code>tau</code>. Returns coefficients for the <code>tau</code>-th quantile; <code>fitted()</code> gives the in-sample conditional quantile estimates.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># multiple quantile levels at once</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>qr_multi <span class="ot">&lt;-</span> <span class="fu">rq</span>(r_y <span class="sc">~</span> r_x, <span class="at">tau =</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">0.10</span>))</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">coef</span>(qr_multi), <span class="dv">6</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            tau= 0.01 tau= 0.05 tau= 0.10
+(Intercept) -2.671022 -1.623656 -1.098339
+r_x          0.264201  0.145238  0.077587</code></pre>
+</div>
+</div>
+<p>Each column is the coefficient vector for that quantile level. All three models share the same regressors but produce different conditional quantile estimates.</p>
+
+
+</section>
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/mtfehl\.github\.io\/finc_metrics\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/mtfehl">
+      <i class="bi bi-github" role="img">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://linkedin.com/in/michael-t-fehl">
+      <i class="bi bi-linkedin" role="img">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="mailto:michaelthomasfehl@gmail.com">
+      <i class="bi bi-envelope" role="img">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

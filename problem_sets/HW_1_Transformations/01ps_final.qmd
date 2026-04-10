@@ -91,7 +91,7 @@ ggplot(AIRBCN_df, aes(x=date, y=value)) +
   theme(plot.title = element_text(hjust=0.5))
 ```
 
-We observe what seems like a linear, perhaps quadratric trend in the data over time. We also immeditately notice that there is a non-constant volatility, as the volatility increases as the level increases. There also seems to be some type of seasonality present, as the lines seem to follow the same trends for each year (spikes and valleys)
+We observe what seems like a linear, perhaps quadratic trend in the data over time. We also immediately notice non-constant volatility, as the spread of the series increases as the level increases. There also seems to be a clear seasonal component, with the same intra-year spikes and dips repeating each year.
 
 ### ATUR
 
@@ -229,7 +229,7 @@ ln.AIRBCN %>%
 
 ```
 
-After applying for log transformation, we see the variance becomes constant across different levels, so we can move onto to checking for seasonality in our data.
+After applying the log transformation, the variance becomes much more constant across different levels, so we can move onto checking for seasonality.
 
 ### ATUR
 
@@ -272,7 +272,7 @@ ggplot(ATUR_grouped, aes(x=factor(group), y=log(value))) +
 
 ```
 
-As we suspected, the graph exhibits very little change as a result of the lograthimic transformation, confirming our intuition that there exists little non-constant variance across different levels. Thus, we choose not to transform the variable.
+As we suspected, the log transformation produces very little change, confirming that the variance in ATUR is already approximately constant across levels. We choose not to transform this variable.
 
 ### GDPUSA
 
@@ -323,7 +323,7 @@ boxplot(w4, ylim = c(min(GDPUSA), max(GDPUSA)),
         col = "green4")
 ```
 
-Further boxplots grouping the periods into four equal quartiles gives evidence  Thus, we apply a log transformation to our data.
+Grouping the data into four sub-periods makes the relationship clearer: variance visibly expands as the level of GDP rises, consistent with the upward-sloping mean-variance plot. Thus, we apply a log transformation.
 
 ```{r}
 # Store log transformation as an object
@@ -512,8 +512,8 @@ This variable already is seasonally adjusted and thus does not need to be change
 # Auto-correlation Function
 par(mfrow = c(1,2))
 par(cex.main = 0.8)
-# Left plot: Auto-Correlation Function Estimate 
-acf(GDPUSA,
+# Left plot: Auto-Correlation Function Estimate
+acf(GDPUSAvar,
     main = "Auto-Correlation Function Estimates")
 
 # Right plot: Auto-Correlation Function Estimate after 1st-diff
@@ -592,7 +592,7 @@ abline(h=0, col="blue")
 abline(h=mean(d1.d12.Atur), col = "red")
 ```
 
-Again we can iterative this step until we find an increase in the variance, at which point we will stop.
+Again we iterate this step until we find an increase in variance, at which point we stop.
 
 ```{r q05 atur var}
 paste("Variance at 1st-diff: ", as.numeric(var(d1.d12.Atur))) # 1st-diff

@@ -106,7 +106,7 @@ plot(m,v,xlab="Yearly means",ylab="Yearly variances",main="UNEMPL")
 abline(lm(v~m),col=2,lty=3,lwd=2)
 ```
 
-seems to exist a positive relationship b/w the level and the variance; i.e., higher level corresponds to higher variance, on average.
+There seems to be a positive relationship between the level and the variance: higher levels correspond to higher variance on average, which is the signature of non-constant volatility.
 
 To further investigate, we look at boxplots:
 
@@ -117,7 +117,7 @@ boxplot(unempl~floor(time(unempl)),
 
 ```
 
-although not very obvious at first, since there seems to be higher variance at higher levels of our series, we decide to transform our data by scaling the ts points using a logarithmic function; we use log since (...).
+Although not very obvious at first, there does seem to be higher variance at higher levels of the series. We apply a log transformation: the log linearizes multiplicative growth patterns and compresses large values, stabilizing the variance without losing information about the trend and seasonal structure.
 
 ```{r transformation}
 # log trans
@@ -175,8 +175,8 @@ We deal with the apparent seasonality in our ts by taking seasonal differences.
 ```{r seasonal transformation}
 # seasonal diffs
 d12ln.unempl=diff(ln.unempl,12)
-plot(d12ln.unempl, main = "placeholder",
-     ylab = "placeholder")
+plot(d12ln.unempl, main = "Log Unemployment (Spain): After Seasonal Differencing",
+     ylab = "d12 log(Unemployed, millions)")
 abline(h=0)
 ```
 
@@ -1128,7 +1128,43 @@ data.frame(
 
 Based on all previous information, which of the two proposed models would you select as the best? For the selected model fitted to the entire dataset, generate forecasts and confidence intervals for the next year.
 
-```{r}
+Pulling together the evidence from sections 8.5 through 8.9:
 
+- **AIC/BIC** (section 8.5): we prefer models with lower scores, penalizing unnecessary complexity.
+- **Forecast accuracy** (section 8.8): lower RMSE, MAE, RMSPE, and MAPE indicate better out-of-sample performance on the held-out year.
+- **CI width** (section 8.9): narrower intervals reflect more precise forecasts.
+- **Diagnostics** (sections 8.2-8.4): all four models pass residual checks, so this criterion does not differentiate them.
 
+Among the four candidates, $ARIMA(0,2,1)(0,1,1)_{12}$ is the preferred model. It achieves competitive information criteria while using only two parameters (MA(1) and seasonal MA(1)), making it the most parsimonious specification that still captures the short-run dynamics and seasonal structure. The more complex models (ARMA(1,1), ARMA(0,5)) do not offer a meaningful improvement in forecast accuracy sufficient to justify the added parameters.
+
+We now refit the selected model to the full dataset and generate 12-month ahead forecasts:
+
+```{r model-selection}
+# Refit selected model on full data
+mod_final <- arima(ln.unempl,
+                   order = c(0, 2, 1),
+                   seasonal = list(order = c(0, 1, 1), period = 12))
+mod_final
+
+# 12-month ahead forecasts
+pred_final    <- predict(mod_final, n.ahead = 12)
+point_final   <- pred_final$pred
+se_final      <- pred_final$se
+upper_final   <- point_final + 1.96 * se_final
+lower_final   <- point_final - 1.96 * se_final
+
+# back-transform from log scale
+ts.plot(exp(ln.unempl), exp(lower_final), exp(upper_final), exp(point_final),
+        lty = c(1, 2, 2, 1),
+        col = c(1, 4, 4, 2),
+        xlim = c(2020, 2027),
+        main = "Unemployment Forecast: ARIMA(0,2,1)(0,1,1)_12",
+        ylab = "Unemployed (millions)",
+        type = "o")
+abline(v = 2020:2026, lty = 3, col = 4)
+legend("topleft",
+       c("Observed", "Forecast", "95% CI"),
+       col = c(1, 2, 4), lty = c(1, 1, 2), bty = "n")
 ```
+
+The forecasts are on the original (level) scale after back-transforming via `exp()`. The widening confidence intervals reflect growing uncertainty over the 12-month horizon, consistent with the non-stationary nature of the series after back-transformation.

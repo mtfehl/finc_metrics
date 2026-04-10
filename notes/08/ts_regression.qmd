@@ -1,0 +1,359 @@
+---
+title: "Regression with Time Series"
+description: "Spurious regression, unit roots, ADF test, and cointegration"
+date: 03-10-2026
+class-notes: true
+image: "/images/dickey_fuller.png"
+format:
+  html:
+    embed-resources: false
+execute:
+  cache: false
+  warning: false
+  message: false
+---
+
+```{r libs}
+#| output: false
+library(urca)       # ur.df(): Dickey-Fuller with drift/trend variants and AIC lag selection
+library(tseries)    # adf.test(): quick ADF screening, po.test(): Phillips-Ouliaris cointegration
+library(lmtest)     # coeftest(): robust inference for time series regressions
+library(quantmod)   # getSymbols(): download financial price series (Gold, Silver, etc.)
+library(dynlm)      # dynlm(): dynamic linear models with lag operators for ECM estimation
+```
+
+# Regression and Stationarity
+
+Conventional OLS asymptotics require stationary regressors. When variables are non-stationary (integrated), standard inference breaks down and results can be **spurious**.
+
+**Spurious regression** (Yule 1926; Granger and Newbold 1974): regressing one $I(1)$ series on another unrelated $I(1)$ series produces a seemingly significant relationship (high $R^2$, significant t-stats) even though the two series are completely unrelated.
+
+**Unbalanced regressions**: the regressand $Y_t$ and regressors $X_t$ should be of the same order of integration. Mixing $I(0)$ and $I(1)$ variables gives "odd" results.
+
+```{r spurious}
+set.seed(11)
+n  <- 200
+y1 <- cumsum(rnorm(n))  # independent I(1)
+y2 <- cumsum(rnorm(n))  # independent I(1)
+
+mod_spur <- lm(y1 ~ y2)
+summary(mod_spur)       # expect significant t-stat despite no relationship
+```
+
+```{r spurious-plot}
+#| echo: false
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+plot(y1, type = "l", col = "steelblue", main = "Two Independent Random Walks",
+     ylab = "", ylim = range(c(y1, y2)))
+lines(y2, col = "tomato")
+legend("topleft", c("Y1", "Y2"), col = c("steelblue", "tomato"), lty = 1, bty = "n")
+plot(y2, y1, main = "Y1 vs Y2 (spurious)", xlab = "Y2", ylab = "Y1", pch = 20, cex = 0.5)
+abline(mod_spur, col = "tomato", lwd = 2)
+```
+
+# Stationarity and Order of Integration
+
+A series is **integrated of order $d$**, $X_t \sim I(d)$, if it becomes stationary after differencing $d$ times.
+
+- **$I(0)$**: stationary, mean-reverting, limited memory, transitory shocks, ACF decays fast
+- **$I(1)$**: random walk-like; wanders widely, infinite memory, permanent shocks, ACF decays slowly
+
+For an AR(1): $Y_t = \rho Y_{t-1} + Z_t$:
+- $|\rho| < 1$: stationary, $I(0)$
+- $\rho = 1$: unit root, $I(1)$, variance grows with $t$
+- $\rho > 1$: explosive, not economically meaningful
+
+# Dickey-Fuller Test
+
+To test formally for a unit root, start with the AR(1):
+
+$$Y_t = \rho Y_{t-1} + Z_t$$
+
+Subtract $Y_{t-1}$ from both sides: $\Delta Y_t = \alpha Y_{t-1} + Z_t$ where $\alpha = \rho - 1$.
+
+Hypotheses:
+- $H_0$: $\alpha = 0$ ($\rho = 1$, unit root, non-stationary)
+- $H_1$: $\alpha < 0$ ($\rho < 1$, stationary)
+
+**Problem**: under $H_0$, $Y_t$ is non-stationary, so the OLS t-statistic does not follow a standard t-distribution. The t-statistic on $\hat{\alpha}$ converges to a functional of a standard Brownian motion, not to $N(0,1)$. This limiting distribution is called the **Dickey-Fuller distribution**. Its critical values are more negative than for a standard t-test: you need a more extreme (more negative) test statistic to reject $H_0$. The critical values are obtained from Monte Carlo simulation and printed directly in the `ur.df()` output. Never compare the test statistic to $\pm 1.96$.
+
+The re-parametrization $\alpha = \rho - 1$ makes the hypotheses natural: $H_0: \alpha = 0$ ($\rho = 1$, unit root) versus $H_1: \alpha < 0$ ($\rho < 1$, stationary, mean-reverting). The test is one-sided: we only care whether the process is explosive-free and stationary, not whether it is explosive.
+
+Three variants depending on the deterministic terms included:
+
+| Variant | Regression |
+|---------|-----------|
+| No drift, no trend | $\Delta Y_t = \alpha Y_{t-1} + Z_t$ |
+| With drift | $\Delta Y_t = \beta_0 + \alpha Y_{t-1} + Z_t$ |
+| With drift + trend | $\Delta Y_t = \beta_0 + \beta_1 t + \alpha Y_{t-1} + Z_t$ |
+
+Including drift and/or trend changes the critical values.
+
+In R, `urca::ur.df(y, type, lags)` implements all three variants. The `type` argument is `'none'` (no drift, no trend), `'drift'` (with drift), or `'trend'` (with drift and trend). The test statistic is labeled `tau`, `tau2`, or `tau3` in the output depending on the variant.
+
+```{r df-test}
+set.seed(12)
+y_rw <- cumsum(rnorm(100))    # true I(1)
+y_ar <- arima.sim(model = list(ar = 0.7), n = 100)  # true I(0)
+
+# DF test (no lags) on the random walk
+adf_rw <- ur.df(y_rw, type = "none", lags = 0)
+summary(adf_rw)
+```
+
+```{r df-stationary}
+# on the stationary series
+adf_ar <- ur.df(y_ar, type = "none", lags = 0)
+summary(adf_ar)
+```
+
+# Augmented Dickey-Fuller (ADF) Test
+
+The basic DF test assumes iid errors. In practice, residuals are often serially correlated (common in economic data). **Augmented DF** adds lagged differences to absorb serial correlation:
+
+**Without drift**: $\Delta Y_t = \alpha Y_{t-1} + \sum_{i=1}^{p-1} \gamma_i \Delta Y_{t-i} + Z_t$
+
+**With drift**: $\Delta Y_t = \beta_0 + \alpha Y_{t-1} + \sum_{i=1}^{p-1} \gamma_i \Delta Y_{t-i} + Z_t$
+
+**With drift + trend**: $\Delta Y_t = \beta_0 + \beta_1 t + \alpha Y_{t-1} + \sum_{i=1}^{p-1} \gamma_i \Delta Y_{t-i} + Z_t$
+
+The lag augmentation serves a specific purpose: it removes serial correlation from the residuals $Z_t$. Without this, the error term in the regression is autocorrelated, which invalidates the asymptotic distribution of the test statistic. By including enough lags of $\Delta Y_t$, the residuals become approximately white noise and the Dickey-Fuller limiting distribution applies. The coefficients $\gamma_i$ on the augmenting lags are nuisance parameters: they are not interpreted and not tested.
+
+Lag length selection: pass `selectlags = 'AIC'` or `selectlags = 'BIC'` to `urca::ur.df()` for automatic selection. The critical values at 1%, 5%, and 10% are printed in the `ur.df` summary output under `Critical values`; compare the test statistic to these, not to standard normal values.
+
+The lag length $p-1$ is selected by AIC/BIC. The test statistic and its distribution are the same as DF; only the t-stat on $\alpha$ is used.
+
+**Properties of ADF**:
+- Poor power against near-unit-root alternatives (tends to fail to reject when $\rho$ is close but not equal to 1)
+- Relatively little size distortion
+- Lag selection by AIC recommended ("likely to be the most useful in practice", De Jong et al., 1992)
+
+```{r adf-test}
+# ADF with automatic lag selection (AIC)
+adf_rw_aic <- ur.df(y_rw, type = "drift", selectlags = "AIC")
+summary(adf_rw_aic)
+```
+
+```{r adf-stationary-lags}
+adf_ar_aic <- ur.df(y_ar, type = "drift", selectlags = "AIC")
+summary(adf_ar_aic)
+```
+
+## Practical Workflow
+
+1. Plot the series. Does it wander or mean-revert?
+2. Plot the ACF. Slow decay suggests $I(1)$.
+3. Apply ADF with drift (or drift + trend if visual trend is present), using AIC lag selection
+4. If fail to reject: series is $I(1)$. Difference and re-test.
+5. If reject: series is $I(0)$, proceed with ARMA modeling
+
+```{r full-workflow}
+# Spain GDP example from lecture: check levels vs differences
+data("EuStockMarkets")
+dax <- EuStockMarkets[, "DAX"]
+ldax <- log(dax)
+
+par(mfrow = c(2, 2), mar = c(3, 4, 2, 1))
+plot(ldax,       type = "l", main = "Log DAX",         ylab = "")
+plot(diff(ldax), type = "l", main = "Diff Log DAX",    ylab = "")
+acf(ldax,        main = "ACF: Log DAX",               lag.max = 30)
+acf(diff(ldax),  main = "ACF: Diff Log DAX",          lag.max = 30)
+```
+
+```{r dax-adf}
+# ADF on log DAX (levels)
+summary(ur.df(ldax,       type = "drift", selectlags = "AIC"))
+# ADF on first differences
+summary(ur.df(diff(ldax), type = "drift", selectlags = "AIC"))
+```
+
+## Real-Data Example: Spain GDP
+
+The ADF example uses quarterly Spanish GDP (in thousands of millions of euros, 2000--present). The series has a clear upward trend, so the trend variant of the DF test is appropriate.
+
+```{r gdp-workflow}
+# use EuStockMarkets DAX as a stand-in for GDP-like trending series
+data("EuStockMarkets")
+gdp_proxy <- window(ts(EuStockMarkets[, "DAX"], start = c(2000, 1), frequency = 4))
+
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+plot(gdp_proxy, main = "DAX (GDP proxy)", ylab = "Level")
+plot(diff(gdp_proxy), main = "First Difference", ylab = "Delta")
+par(mfrow = c(1, 1))
+```
+
+**Step 1: ADF on levels.** Test all three variants (none, drift, trend) -- the trend variant is most appropriate given the visual upward drift:
+
+```{r gdp-adf-levels}
+# none: no deterministic terms
+summary(ur.df(gdp_proxy, lag = 0, type = "none"))
+# drift: intercept only
+summary(ur.df(gdp_proxy, lag = 0, type = "drift"))
+# trend: intercept + time trend
+summary(ur.df(gdp_proxy, lag = 0, type = "trend"))
+```
+
+**Step 2: ADF on first differences.** After differencing, the trend disappears; use the drift variant:
+
+```{r gdp-adf-diff}
+d_gdp <- diff(gdp_proxy)
+summary(ur.df(d_gdp, selectlags = "AIC", type = "drift"))
+```
+
+If the level tests fail to reject and the difference test rejects, the series is confirmed $I(1)$.
+
+**Reading `ur.df` output**: the test statistic is in the row labeled `z.lag.1` (the coefficient on $Y_{t-1}$). Compare it to the critical values in the `Critical values` block. Rejection requires the test statistic to be more negative than the critical value.
+
+# Cointegration
+
+Two $I(1)$ series $Y_t$ and $X_t$ are **cointegrated** if there exists $\beta$ such that $Y_t - \beta X_t \sim I(0)$. The linear combination $u_t = Y_t - \beta X_t$ is stationary even though $Y_t$ and $X_t$ individually are not.
+
+Cointegration implies a long-run equilibrium relationship. Deviations from it are transitory and the series are pulled back together over time.
+
+**Error Correction Model (ECM)**: if $Y_t$ and $X_t$ are cointegrated, they have an ECM representation:
+
+$$\Delta Y_t = \lambda(Y_{t-1} - \beta X_{t-1}) + \text{lags} + \epsilon_t$$
+
+where $\lambda < 0$ is the speed of adjustment toward the long-run equilibrium $Y_t = \beta X_t$.
+
+In R, the Engle-Granger two-step procedure is: (1) regress $Y_t$ on $X_t$ with `lm()` and save residuals; (2) run `urca::ur.df(resid, type = 'none', selectlags = 'AIC')` on the residuals. Rejection of the unit root in the residuals confirms cointegration. Note: use the Engle-Granger critical values (not standard DF critical values) since the residuals are estimated.
+
+```{r cointegration}
+# Engle-Granger two-step: regress Y on X, test residuals for I(0)
+set.seed(13)
+x_ci   <- cumsum(rnorm(200))
+y_ci   <- 0.8 * x_ci + rnorm(200)   # cointegrated: Y = 0.8X + stationary noise
+
+# step 1: OLS
+eg_mod <- lm(y_ci ~ x_ci)
+resid_eg <- residuals(eg_mod)
+
+# step 2: ADF on residuals
+summary(ur.df(resid_eg, type = "none", selectlags = "AIC"))
+```
+
+If we reject the null of a unit root in the residuals, the series are cointegrated.
+
+## Real-Data Example: Gold and Silver
+
+Gold and Silver prices are often cited as a textbook cointegration example. Both are $I(1)$ in levels but their spread tends to be stationary, reflecting a long-run pricing relationship.
+
+The workflow below uses `quantmod::getSymbols()` to fetch price data. Because live data downloads require internet access, the example uses a simulated cointegrated pair with the same statistical structure:
+
+```{r gold-silver-sim}
+set.seed(13)
+n  <- 1500
+# common stochastic trend (the I(1) component both series share)
+common_trend <- cumsum(rnorm(n, sd = 1))
+gold   <- ts(100 + common_trend + rnorm(n, sd = 2),   start = c(2012, 1), frequency = 252)
+silver <- ts(20  + 0.5 * common_trend + rnorm(n, sd = 1), start = c(2012, 1), frequency = 252)
+```
+
+**Step 1: Confirm both series are I(1).**
+
+```{r gold-adf}
+# gold levels: fail to reject
+summary(ur.df(gold,       type = "drift", selectlags = "AIC"))
+# gold differences: reject
+summary(ur.df(diff(gold), type = "drift", selectlags = "AIC"))
+```
+
+```{r silver-adf}
+summary(ur.df(silver,       type = "drift", selectlags = "AIC"))
+summary(ur.df(diff(silver), type = "drift", selectlags = "AIC"))
+```
+
+**Step 2: Engle-Granger regression.** OLS of Gold on Silver gives the long-run coefficient $\hat{\beta}$:
+
+```{r eg-regression}
+m_eg  <- lm(gold ~ silver)
+summary(m_eg)
+e_hat <- resid(m_eg)
+```
+
+**Step 3: ADF on residuals.** If $\hat{u}_t = Y_t - \hat{\beta} X_t$ is $I(0)$, the series are cointegrated:
+
+```{r eg-adf-resid}
+# use type = "none": residuals have zero mean by OLS construction
+summary(ur.df(e_hat, type = "none", selectlags = "AIC"))
+```
+
+**Step 4: Error Correction Model.** If cointegrated, estimate the ECM with `lm()`. The lagged residual `e_hat[-n]` is the error correction term; its coefficient $\hat{\lambda}$ measures the speed of adjustment:
+
+```{r ecm}
+n_obs <- length(gold)
+dg    <- diff(gold)
+ds    <- diff(silver)
+er    <- e_hat[-n_obs]   # error correction term (lagged one period)
+
+# step selection via step()
+ecm_full <- lm(dg ~ ds + lag(dg, -1) + lag(ds, -1) + er)
+ecm      <- step(ecm_full, trace = FALSE)
+summary(ecm)
+```
+
+The coefficient on `er` is $\hat{\lambda}$; it should be negative (restoring force toward equilibrium). A value of $-0.05$ means 5% of the deviation from long-run equilibrium is corrected each period.
+
+---
+
+# Appendix: Key Functions {#sec-appendix-08}
+
+## `ur.df()`: Dickey-Fuller and ADF Tests
+
+`urca::ur.df(y, type, lags, selectlags)` is the workhorse unit root function.
+
+| Argument | Options | Effect |
+|---|---|---|
+| `type` | `"none"`, `"drift"`, `"trend"` | Deterministic terms in the regression |
+| `lags` | integer | Fixed number of augmenting lags |
+| `selectlags` | `"AIC"`, `"BIC"`, `"Fixed"` | Automatic lag selection |
+
+```{r urdf-demo}
+set.seed(12)
+y_I1 <- cumsum(rnorm(150))
+y_I0 <- arima.sim(model = list(ar = 0.7), n = 150)
+
+# I(1) series: fail to reject at drift specification
+cat("=== I(1) series (drift) ===\n")
+summary(ur.df(y_I1, type = "drift", selectlags = "AIC"))
+
+# I(0) series: reject unit root
+cat("=== I(0) series (drift) ===\n")
+summary(ur.df(y_I0, type = "drift", selectlags = "AIC"))
+```
+
+## Reading `ur.df` Output
+
+The summary prints:
+- **Test statistic**: the t-statistic on the lagged level coefficient (`z.lag.1`)
+- **Critical values**: at 1pct, 5pct, 10pct significance levels
+- **Rule**: reject $H_0$ (unit root) if test statistic < critical value (more negative)
+
+## `lm()` + `ur.df()`: Engle-Granger Two-Step
+
+```{r eg-demo}
+set.seed(99)
+x_ci <- cumsum(rnorm(200))
+y_ci <- 0.8 * x_ci + rnorm(200, sd = 0.5)
+
+# step 1
+m1 <- lm(y_ci ~ x_ci)
+e  <- resid(m1)
+
+# step 2
+cat("Long-run beta:", round(coef(m1)["x_ci"], 4), "\n")
+summary(ur.df(e, type = "none", selectlags = "AIC"))
+```
+
+## `step()`: ECM Variable Selection
+
+`stats::step()` uses AIC to drop insignificant lags from the ECM, giving a parsimonious model. Always keep the error correction term `er` regardless of significance -- removing it breaks the ECM structure.
+
+```{r step-demo}
+dY  <- diff(y_ci)
+dX  <- diff(x_ci)
+er2 <- e[-length(e)]
+ecm_full <- lm(dY ~ dX + lag(dY, -1) + lag(dX, -1) + er2)
+ecm_sel  <- step(ecm_full, trace = FALSE)
+cat("Speed of adjustment (lambda):", round(coef(ecm_sel)["er2"], 4), "\n")
+```

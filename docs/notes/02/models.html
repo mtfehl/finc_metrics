@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2026-01-27">
+<meta name="description" content="AR(p), MA(q), &amp; ARMA(p,q) Models">
+
+<title>Basic Linear Models – Michael Fehl</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-e4615fff4d5566f0adaf6c91ca211490.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-dark-feaa1f60ed04146add738bf757f58d9a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-dark"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = true;
+    const darkModeDefault = authorPrefersDark;
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Michael Fehl</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://mtfehl.github.io/econ_portfolio/"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://mtfehl.github.io/econ_portfolio/projects.html"> 
+<span class="menu-text">Portfolio</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-classes" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Classes</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-classes">    
+        <li>
+    <a class="dropdown-item" href="https://mtfehl.github.io/econ_portfolio/classes.html">
+ <span class="dropdown-text">Home</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mtfehl.github.io/geospatial/">
+ <span class="dropdown-text">Geospatial</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mtfehl.github.io/finc_metrics/">
+ <span class="dropdown-text">Econometrics: Time Series</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mtfehl.github.io/networks/">
+ <span class="dropdown-text">Networks: Concepts &amp; Algorithms</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="https://mtfehl.github.io/econometrics2/">
+ <span class="dropdown-text">Econometrics: Panel Data</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="https://mtfehl.github.io/econ_portfolio/about.html"> 
+<span class="menu-text">About Me</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="https://mtfehl.github.io/econ_portfolio/file/Fehl_Michael.pdf"> 
+<span class="menu-text">CV</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/mtfehl"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://linkedin.com/in/michael-t-fehl"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="mailto:michaelthomasfehl@gmail.com"> <i class="bi bi-envelope" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Basic Linear Models</li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="../../index.html" class="sidebar-logo-link">
+      </a>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Classes</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econ_portfolio/classes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Directory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Geospatial Data Science &amp; Economic Spatial Models</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/geospatial/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Class Notes</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/geospatial/notes/01/01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Intro: Vector Data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/geospatial/notes/02/02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">st_filter() &amp; st_intersect()</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Problem Sets</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/geospatial/problem_sets/01ps/01ps.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PS01: Vietnam Road Maps</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Projects</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/geospatial/projects/earthquake/pj01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Project: Earthquakes and Remittances</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Econometrics: Time Series</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/finc_metrics/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
+ <span class="menu-text">Class Notes</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/finc_metrics/notes/01/intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Intro: Time Series &amp; Stationarity</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/finc_metrics/notes/02/models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Models: AR(p), MA(q), ARMA(p,q)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
+ <span class="menu-text">Problem Sets</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/finc_metrics/problem_sets/HW_1_Transformations/01ps_final.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PS01: Non-Stationary Transformations</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
+ <span class="menu-text">Projects</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/finc_metrics/projects/Project Geospatial/Project Geospatial/geospatial.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Project 01</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+ <span class="menu-text">Networks: Concepts &amp; Algorithms</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/networks/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
+ <span class="menu-text">Class Notes</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/networks/notes/01/01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Intro to Networks</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/networks/notes/02/02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">placeholder</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false">
+ <span class="menu-text">Problem Sets</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/networks/problem_sets/ps01/problem_set.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PS01: placeholder</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/networks/problem_sets/ps02/ps02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PS02: placeholder</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false">
+ <span class="menu-text">Projects</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-13" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/networks/projects/project1/01project.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Project 1</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false">
+ <span class="menu-text">Econometrics: Panel Data</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-14" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="false">
+ <span class="menu-text">Class Notes</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-15" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/pooled_ols/pols.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pooled OLS</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/random_effects/re.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Random Effects</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/fixed_effect/fe.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Fixed Effects</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/first_diff/fd.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">First Differences</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/gmm/gmm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GMM</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/anderson_arellano/abond.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Anderson-Hsiao &amp; Arellano-Bond</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/mle/mle.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">MLE</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/binary_choice/logit_probit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Binary Choice Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Notes/multinomial/multinomial.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Multinomial Models</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="false">
+ <span class="menu-text">Problem Sets</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-16" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Problem_Sets/PS01/ps01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PS01: POLS-RE-FE-FD</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Problem_Sets/PS02/ps02.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PS02: RE-FE-FD-Arellano-Bond</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="false">
+ <span class="menu-text">Projects</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-17" class="collapse list-unstyled sidebar-section depth3 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="https://mtfehl.github.io/econometrics2/Projects/earthquake/pj01.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Project: Earthquakes and Remittances</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#white-noise" id="toc-white-noise" class="nav-link active" data-scroll-target="#white-noise">White Noise</a></li>
+  <li><a href="#linear-processes" id="toc-linear-processes" class="nav-link" data-scroll-target="#linear-processes">Linear Processes</a></li>
+  <li><a href="#maq-moving-average" id="toc-maq-moving-average" class="nav-link" data-scroll-target="#maq-moving-average">MA(q): Moving Average</a>
+  <ul>
+  <li><a href="#properties-of-maq" id="toc-properties-of-maq" class="nav-link" data-scroll-target="#properties-of-maq">Properties of MA(q)</a></li>
+  <li><a href="#invertibility" id="toc-invertibility" class="nav-link" data-scroll-target="#invertibility">Invertibility</a></li>
+  </ul></li>
+  <li><a href="#arp-autoregressive" id="toc-arp-autoregressive" class="nav-link" data-scroll-target="#arp-autoregressive">AR(p): Autoregressive</a>
+  <ul>
+  <li><a href="#causality-stationarity" id="toc-causality-stationarity" class="nav-link" data-scroll-target="#causality-stationarity">Causality (Stationarity)</a></li>
+  <li><a href="#yule-walker-equations" id="toc-yule-walker-equations" class="nav-link" data-scroll-target="#yule-walker-equations">Yule-Walker Equations</a></li>
+  <li><a href="#properties-of-arp" id="toc-properties-of-arp" class="nav-link" data-scroll-target="#properties-of-arp">Properties of AR(p)</a></li>
+  </ul></li>
+  <li><a href="#armapq" id="toc-armapq" class="nav-link" data-scroll-target="#armapq">ARMA(p,q)</a>
+  <ul>
+  <li><a href="#acf-and-pacf-of-armapq" id="toc-acf-and-pacf-of-armapq" class="nav-link" data-scroll-target="#acf-and-pacf-of-armapq">ACF and PACF of ARMA(p,q)</a></li>
+  <li><a href="#arma11-in-detail" id="toc-arma11-in-detail" class="nav-link" data-scroll-target="#arma11-in-detail">ARMA(1,1) in Detail</a></li>
+  </ul></li>
+  <li><a href="#psi--and-pi-weights" id="toc-psi--and-pi-weights" class="nav-link" data-scroll-target="#psi--and-pi-weights">Psi- and Pi-Weights</a>
+  <ul>
+  <li><a href="#psi-weights-mainfty-representation" id="toc-psi-weights-mainfty-representation" class="nav-link" data-scroll-target="#psi-weights-mainfty-representation">Psi-weights (MA<span class="math inline">\((\infty)\)</span> representation)</a></li>
+  <li><a href="#pi-weights-arinfty-representation" id="toc-pi-weights-arinfty-representation" class="nav-link" data-scroll-target="#pi-weights-arinfty-representation">Pi-weights (AR<span class="math inline">\((\infty)\)</span> representation)</a></li>
+  </ul></li>
+  <li><a href="#summary-acfpacf-identification" id="toc-summary-acfpacf-identification" class="nav-link" data-scroll-target="#summary-acfpacf-identification">Summary: ACF/PACF Identification</a></li>
+  <li><a href="#sec-appendix-02" id="toc-sec-appendix-02" class="nav-link" data-scroll-target="#sec-appendix-02">Appendix: Key Functions</a>
+  <ul>
+  <li><a href="#arima.sim-simulating-arma-processes" id="toc-arima.sim-simulating-arma-processes" class="nav-link" data-scroll-target="#arima.sim-simulating-arma-processes"><code>arima.sim()</code>: Simulating ARMA Processes</a></li>
+  <li><a href="#polyroot-characteristic-polynomial-roots" id="toc-polyroot-characteristic-polynomial-roots" class="nav-link" data-scroll-target="#polyroot-characteristic-polynomial-roots"><code>polyroot()</code>: Characteristic Polynomial Roots</a></li>
+  <li><a href="#armatoma-psi-weights" id="toc-armatoma-psi-weights" class="nav-link" data-scroll-target="#armatoma-psi-weights"><code>ARMAtoMA()</code>: Psi-Weights</a></li>
+  <li><a href="#arima-vs-arima-fitting" id="toc-arima-vs-arima-fitting" class="nav-link" data-scroll-target="#arima-vs-arima-fitting"><code>Arima()</code> vs <code>arima()</code>: Fitting</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Basic Linear Models</h1>
+</div>
+
+<div>
+  <div class="description">
+    AR(p), MA(q), &amp; ARMA(p,q) Models
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">January 27, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forecast)   <span class="co"># Arima(), ARMAtoMA(), auto.arima(): ARMA fitting and MA-inf weights</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="white-noise" class="level1">
+<h1>White Noise</h1>
+<p>All linear time series models start from <strong>white noise</strong> <span class="math inline">\(\{Z_t\}\)</span>:</p>
+<p><span class="math display">\[Z_t \sim WN(0, \sigma_Z^2)\]</span></p>
+<p>meaning <span class="math inline">\(E(Z_t) = 0\)</span>, <span class="math inline">\(Var(Z_t) = \sigma_Z^2 &lt; \infty\)</span>, and <span class="math inline">\(Cov(Z_t, Z_s) = 0\)</span> for <span class="math inline">\(t \neq s\)</span>. White noise has no autocorrelation and no memory. Simulated with <code>base::rnorm()</code> and visualized with <code>stats::acf()</code>.</p>
+<p>If additionally <span class="math inline">\(Z_t \overset{iid}{\sim} N(0, \sigma_Z^2)\)</span>, we call it <strong>Gaussian white noise</strong>. The distinction: iid WN <span class="math inline">\(\Rightarrow\)</span> WN, but not vice versa. WN only requires uncorrelated errors; they can still be dependent (e.g., <span class="math inline">\(Z_t = \epsilon_t \epsilon_{t-1}\)</span> where <span class="math inline">\(\epsilon_t \overset{iid}{\sim} N(0,1)\)</span> is WN but not iid).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="models_files/figure-html/wn-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="linear-processes" class="level1">
+<h1>Linear Processes</h1>
+<p>A <strong>linear process</strong> is a process of the form:</p>
+<p><span class="math display">\[X_t = \mu + \sum_{j=-\infty}^{\infty} \psi_j Z_{t-j}, \qquad Z_t \sim WN(0, \sigma_Z^2)\]</span></p>
+<p>where <span class="math inline">\(\sum_{j=-\infty}^{\infty} |\psi_j| &lt; \infty\)</span> (absolute summability, ensures the sum converges). All causal, invertible ARMA processes are linear processes. The psi-weights <span class="math inline">\(\{\psi_j\}\)</span> characterize how past and future shocks affect <span class="math inline">\(X_t\)</span>.</p>
+<p>A <strong>causal</strong> linear process only involves past shocks: <span class="math inline">\(X_t = \mu + \sum_{j=0}^{\infty} \psi_j Z_{t-j}\)</span> with <span class="math inline">\(\psi_0 = 1\)</span>. This is the MA(<span class="math inline">\(\infty\)</span>) representation. Causal processes have <span class="math inline">\(\psi_j = 0\)</span> for <span class="math inline">\(j &lt; 0\)</span>.</p>
+<p>For a causal linear process:</p>
+<ul>
+<li><span class="math inline">\(E(X_t) = \mu\)</span></li>
+<li><span class="math inline">\(\gamma(k) = \sigma_Z^2 \sum_{j=0}^{\infty} \psi_j \psi_{j+k}\)</span></li>
+<li><span class="math inline">\(\gamma(0) = \sigma_Z^2 \sum_{j=0}^{\infty} \psi_j^2\)</span></li>
+</ul>
+</section>
+<section id="maq-moving-average" class="level1">
+<h1>MA(q): Moving Average</h1>
+<p>A <strong>MA(q)</strong> process expresses <span class="math inline">\(X_t\)</span> as a weighted sum of the current and past <span class="math inline">\(q\)</span> white noise shocks:</p>
+<p><span class="math display">\[X_t = \mu + Z_t + \theta_1 Z_{t-1} + \cdots + \theta_q Z_{t-q} = \mu + \Theta_q(B) Z_t\]</span></p>
+<p>where <span class="math inline">\(\Theta_q(B) = 1 + \theta_1 B + \cdots + \theta_q B^q\)</span> is the MA polynomial and <span class="math inline">\(\theta_q \neq 0\)</span>.</p>
+<section id="properties-of-maq" class="level2">
+<h2 class="anchored" data-anchor-id="properties-of-maq">Properties of MA(q)</h2>
+<p>A MA(q) is <strong>always stationary</strong> (it is a finite linear combination of WN, which is stationary). Its moments:</p>
+<p><span class="math display">\[E(X_t) = \mu\]</span> <span class="math display">\[\gamma(0) = \sigma_Z^2 (1 + \theta_1^2 + \cdots + \theta_q^2)\]</span> <span class="math display">\[\gamma(k) = \sigma_Z^2 \sum_{j=0}^{q-k} \theta_j \theta_{j+k}, \qquad k = 1, \ldots, q \qquad (\theta_0 \equiv 1)\]</span> <span class="math display">\[\gamma(k) = 0, \qquad k &gt; q\]</span></p>
+<p>So the ACF <strong>cuts off after lag <span class="math inline">\(q\)</span></strong>, which is the signature of an MA process. The PACF of an MA(q) tails off (decays slowly).</p>
+<p><strong>MA(1) autocorrelation in detail</strong>:</p>
+<p><span class="math display">\[\rho(1) = \frac{\theta_1}{1 + \theta_1^2}, \qquad \rho(k) = 0 \text{ for } k &gt; 1\]</span></p>
+<p>Note that <span class="math inline">\(\theta_1\)</span> and <span class="math inline">\(1/\theta_1\)</span> give the same ACF (since <span class="math inline">\(\rho(1)\)</span> is symmetric in <span class="math inline">\(\theta_1\)</span> and <span class="math inline">\(1/\theta_1\)</span>). This is why invertibility is required: to get a unique MA representation.</p>
+</section>
+<section id="invertibility" class="level2">
+<h2 class="anchored" data-anchor-id="invertibility">Invertibility</h2>
+<p>An MA(q) is <strong>invertible</strong> if the roots of <span class="math inline">\(\Theta_q(z) = 1 + \theta_1 z + \cdots + \theta_q z^q = 0\)</span> all lie <strong>outside</strong> the unit circle (i.e., <span class="math inline">\(|z_i| &gt; 1\)</span> for all roots <span class="math inline">\(z_i\)</span>).</p>
+<p>Invertibility allows writing <span class="math inline">\(Z_t\)</span> as a convergent linear combination of past <span class="math inline">\(X_t\)</span> values (the AR<span class="math inline">\((\infty)\)</span> representation):</p>
+<p><span class="math display">\[\Pi(B) X_t = Z_t, \qquad \Pi(B) = \Theta_q(B)^{-1}\]</span></p>
+<p>Without invertibility, there are multiple MA processes with the same ACF. The invertible one is the unique, identifiable representation.</p>
+<p><strong>MA(1) invertibility</strong>: <span class="math inline">\(\Theta_1(z) = 1 + \theta_1 z = 0 \Rightarrow z = -1/\theta_1\)</span>. For <span class="math inline">\(|z| &gt; 1\)</span>: <span class="math inline">\(|-1/\theta_1| &gt; 1 \Rightarrow |\theta_1| &lt; 1\)</span>.</p>
+<p>In R, MA processes are simulated with <code>base::arima.sim(model = list(ma = c(theta1, theta2)), n = T)</code> and fit with <code>forecast::Arima(x, order = c(0, 0, q))</code>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="models_files/figure-html/ma-sim-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>MA(1): ACF has a single spike at lag 1, zero after. MA(2): ACF has spikes at lags 1 and 2, zero after. PACF of an MA(q) tails off.</p>
+</section>
+</section>
+<section id="arp-autoregressive" class="level1">
+<h1>AR(p): Autoregressive</h1>
+<p>A <strong>AR(p)</strong> process regresses <span class="math inline">\(X_t\)</span> on its own <span class="math inline">\(p\)</span> past values:</p>
+<p><span class="math display">\[X_t = \phi_1 X_{t-1} + \cdots + \phi_p X_{t-p} + Z_t\]</span></p>
+<p>In operator notation: <span class="math inline">\(\Phi_p(B) X_t = Z_t\)</span> where <span class="math inline">\(\Phi_p(B) = 1 - \phi_1 B - \cdots - \phi_p B^p\)</span> and <span class="math inline">\(\phi_p \neq 0\)</span>. With a non-zero mean: <span class="math inline">\((X_t - \mu) = \phi_1(X_{t-1} - \mu) + \cdots + \phi_p(X_{t-p} - \mu) + Z_t\)</span>.</p>
+<section id="causality-stationarity" class="level2">
+<h2 class="anchored" data-anchor-id="causality-stationarity">Causality (Stationarity)</h2>
+<p>An AR(p) is <strong>causal</strong> (equivalently, stationary) if all roots of the characteristic polynomial <span class="math inline">\(\Phi_p(z) = 1 - \phi_1 z - \cdots - \phi_p z^p = 0\)</span> lie <strong>outside</strong> the unit circle:</p>
+<p><span class="math display">\[\Phi_p(z) = 0 \implies |z| &gt; 1\]</span></p>
+<p>When causal, <span class="math inline">\(X_t\)</span> has an MA(<span class="math inline">\(\infty\)</span>) representation:</p>
+<p><span class="math display">\[X_t = \Psi(B) Z_t = \sum_{j=0}^{\infty} \psi_j Z_{t-j}, \qquad \psi_0 = 1\]</span></p>
+<p>The <span class="math inline">\(\psi\)</span>-weights satisfy <span class="math inline">\(\Psi(B) = \Phi_p(B)^{-1}\)</span> and decay to zero geometrically.</p>
+<p><strong>AR(1) example</strong>: <span class="math inline">\(X_t = \phi X_{t-1} + Z_t\)</span>. Characteristic equation: <span class="math inline">\(1 - \phi z = 0 \Rightarrow z = 1/\phi\)</span>. For stationarity: <span class="math inline">\(|1/\phi| &gt; 1 \Rightarrow |\phi| &lt; 1\)</span>.</p>
+<p><strong>AR(2) example</strong>: <span class="math inline">\(X_t = \phi_1 X_{t-1} + \phi_2 X_{t-2} + Z_t\)</span>. Characteristic equation: <span class="math inline">\(1 - \phi_1 z - \phi_2 z^2 = 0\)</span>. The roots <span class="math inline">\(z_{1,2}\)</span> must satisfy <span class="math inline">\(|z_{1,2}| &gt; 1\)</span>. The stationarity region in <span class="math inline">\((\phi_1, \phi_2)\)</span> space is the triangle:</p>
+<p><span class="math display">\[\phi_2 + \phi_1 &lt; 1, \quad \phi_2 - \phi_1 &lt; 1, \quad |\phi_2| &lt; 1\]</span></p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check if AR(2) with phi = (1.2, -0.5) is stationary</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>phi <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">1.2</span>, <span class="sc">-</span><span class="fl">0.5</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>roots <span class="ot">&lt;-</span> <span class="fu">polyroot</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="sc">-</span>phi))   <span class="co"># roots of 1 - phi1*z - phi2*z^2</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Roots:"</span>, <span class="fu">round</span>(<span class="fu">Mod</span>(roots), <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Roots: 1.4142 1.4142 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Stationary:"</span>, <span class="fu">all</span>(<span class="fu">Mod</span>(roots) <span class="sc">&gt;</span> <span class="dv">1</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Stationary: TRUE </code></pre>
+</div>
+</div>
+<p>Use <code>base::polyroot(c(1, -phi))</code> to get the roots of <span class="math inline">\(\Phi_p(z)\)</span> and check <code>all(Mod(roots) &gt; 1)</code> for stationarity.</p>
+</section>
+<section id="yule-walker-equations" class="level2">
+<h2 class="anchored" data-anchor-id="yule-walker-equations">Yule-Walker Equations</h2>
+<p>Multiply the AR(p) equation by <span class="math inline">\(X_{t-k}\)</span> and take expectations. Using <span class="math inline">\(E(Z_t X_{t-k}) = 0\)</span> for <span class="math inline">\(k \geq 1\)</span> (since <span class="math inline">\(Z_t\)</span> is uncorrelated with past values):</p>
+<p><span class="math display">\[E(X_t X_{t-k}) = \phi_1 E(X_{t-1} X_{t-k}) + \cdots + \phi_p E(X_{t-p} X_{t-k})\]</span></p>
+<p><span class="math display">\[\gamma(k) = \phi_1 \gamma(k-1) + \phi_2 \gamma(k-2) + \cdots + \phi_p \gamma(k-p), \qquad k \geq 1\]</span></p>
+<p>Dividing by <span class="math inline">\(\gamma(0)\)</span>:</p>
+<p><span class="math display">\[\rho(k) = \phi_1 \rho(k-1) + \phi_2 \rho(k-2) + \cdots + \phi_p \rho(k-p), \qquad k \geq 1\]</span></p>
+<p>In matrix form for <span class="math inline">\(k = 1, \ldots, p\)</span>:</p>
+<p><span class="math display">\[\underbrace{\begin{pmatrix} \rho(0) &amp; \rho(1) &amp; \cdots &amp; \rho(p-1) \\ \rho(1) &amp; \rho(0) &amp; \cdots &amp; \rho(p-2) \\ \vdots &amp; &amp; \ddots &amp; \vdots \\ \rho(p-1) &amp; \rho(p-2) &amp; \cdots &amp; \rho(0) \end{pmatrix}}_{R_p} \begin{pmatrix} \phi_1 \\ \phi_2 \\ \vdots \\ \phi_p \end{pmatrix} = \begin{pmatrix} \rho(1) \\ \rho(2) \\ \vdots \\ \rho(p) \end{pmatrix}\]</span></p>
+<p>This is the Yule-Walker system <span class="math inline">\(R_p \boldsymbol{\phi} = \boldsymbol{\rho}\)</span>. Given <span class="math inline">\(\boldsymbol{\phi}\)</span>, we can solve for <span class="math inline">\(\boldsymbol{\rho}\)</span>; or given sample <span class="math inline">\(\hat{\boldsymbol{\rho}}\)</span>, we can estimate <span class="math inline">\(\hat{\boldsymbol{\phi}} = \hat{R}_p^{-1} \hat{\boldsymbol{\rho}}\)</span> (Yule-Walker estimation).</p>
+</section>
+<section id="properties-of-arp" class="level2">
+<h2 class="anchored" data-anchor-id="properties-of-arp">Properties of AR(p)</h2>
+<p>For a causal AR(p) with zero mean:</p>
+<p><span class="math display">\[\gamma(0) = \sigma_Z^2 \sum_{j=0}^{\infty} \psi_j^2\]</span></p>
+<p>The Yule-Walker recursion gives the ACF for lags <span class="math inline">\(k \geq p\)</span>: the ACF satisfies the same linear recurrence as the AR polynomial, so it <strong>tails off</strong> (decays geometrically or as damped sinusoids). The PACF <strong>cuts off after lag <span class="math inline">\(p\)</span></strong>, which is the signature of an AR process.</p>
+<p><strong>AR(1) ACF and PACF in detail</strong>:</p>
+<p>For <span class="math inline">\(X_t = \phi X_{t-1} + Z_t\)</span> with <span class="math inline">\(|\phi| &lt; 1\)</span>:</p>
+<ul>
+<li><span class="math inline">\(\gamma(0) = \sigma_Z^2/(1-\phi^2)\)</span></li>
+<li><span class="math inline">\(\rho(k) = \phi^k\)</span> (exponential decay)</li>
+<li><span class="math inline">\(\phi_{11} = \rho(1) = \phi\)</span>, <span class="math inline">\(\phi_{kk} = 0\)</span> for <span class="math inline">\(k &gt; 1\)</span></li>
+</ul>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="models_files/figure-html/ar1-acf-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>AR(2) ACF</strong>: the Yule-Walker recursion gives <span class="math inline">\(\rho(k) = \phi_1 \rho(k-1) + \phi_2 \rho(k-2)\)</span> for <span class="math inline">\(k \geq 2\)</span>, with initial conditions <span class="math inline">\(\rho(0) = 1\)</span> and <span class="math inline">\(\rho(1) = \phi_1/(1-\phi_2)\)</span>. The solution depends on whether the roots of <span class="math inline">\(\Phi_2(z)\)</span> are real or complex:</p>
+<ul>
+<li>Real roots: ACF is a mixture of two exponentials</li>
+<li>Complex roots: ACF oscillates as damped sinusoids (pseudo-periodic behavior)</li>
+</ul>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="models_files/figure-html/ar-sim-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>AR(2) with <span class="math inline">\(\phi_1 = 1.2, \phi_2 = -0.6\)</span>: the complex roots produce the sinusoidal oscillation in the ACF.</p>
+</section>
+</section>
+<section id="armapq" class="level1">
+<h1>ARMA(p,q)</h1>
+<p>An <strong>ARMA(p,q)</strong> combines autoregressive and moving average components:</p>
+<p><span class="math display">\[X_t = \phi_1 X_{t-1} + \cdots + \phi_p X_{t-p} + Z_t + \theta_1 Z_{t-1} + \cdots + \theta_q Z_{t-q}\]</span></p>
+<p>In operator notation: <span class="math inline">\(\Phi_p(B) X_t = \Theta_q(B) Z_t\)</span>.</p>
+<p>An ARMA(p,q) is <strong>causal/stationary</strong> if all roots of <span class="math inline">\(\Phi_p(z)\)</span> lie outside the unit circle, and <strong>invertible</strong> if all roots of <span class="math inline">\(\Theta_q(z)\)</span> lie outside the unit circle. We also require that <span class="math inline">\(\Phi_p(z)\)</span> and <span class="math inline">\(\Theta_q(z)\)</span> share no common roots (otherwise the model is over-parameterized).</p>
+<section id="acf-and-pacf-of-armapq" class="level2">
+<h2 class="anchored" data-anchor-id="acf-and-pacf-of-armapq">ACF and PACF of ARMA(p,q)</h2>
+<p>For an ARMA(p,q), multiplying by <span class="math inline">\(X_{t-k}\)</span> and taking expectations gives:</p>
+<p><span class="math display">\[\gamma(k) = \phi_1 \gamma(k-1) + \cdots + \phi_p \gamma(k-p) + \sigma_Z^2 \sum_{j=k}^{q} \theta_j \psi_{j-k}, \qquad k \geq 0\]</span></p>
+<p>For <span class="math inline">\(k &gt; q\)</span>, the second term drops out and the ACF satisfies the same AR(p) recursion. So the ACF <strong>tails off</strong> after lag <span class="math inline">\(q - p\)</span> (the MA part dies out and only the AR part drives long-run autocorrelation).</p>
+<p>Both ACF and PACF <strong>tail off</strong> for ARMA(p,q) with <span class="math inline">\(p,q &gt; 0\)</span>. Neither cuts off cleanly. Use information criteria (AIC/BIC) to select orders.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="models_files/figure-html/arma-sim-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="arma11-in-detail" class="level2">
+<h2 class="anchored" data-anchor-id="arma11-in-detail">ARMA(1,1) in Detail</h2>
+<p><span class="math inline">\(X_t = \phi X_{t-1} + Z_t + \theta Z_{t-1}\)</span>, with <span class="math inline">\(|\phi| &lt; 1\)</span> and <span class="math inline">\(|\theta| &lt; 1\)</span>.</p>
+<p>The autocovariances: <span class="math display">\[\gamma(0) = \sigma_Z^2 \frac{1 + 2\phi\theta + \theta^2}{1 - \phi^2}\]</span> <span class="math display">\[\gamma(1) = \sigma_Z^2 \frac{(1 + \phi\theta)(\phi + \theta)}{1 - \phi^2}\]</span> <span class="math display">\[\gamma(k) = \phi \gamma(k-1), \qquad k \geq 2\]</span></p>
+<p>So <span class="math inline">\(\rho(1) = \frac{(1+\phi\theta)(\phi+\theta)}{1 + 2\phi\theta + \theta^2}\)</span>, and <span class="math inline">\(\rho(k) = \phi^{k-1}\rho(1)\)</span> for <span class="math inline">\(k \geq 1\)</span>.</p>
+</section>
+</section>
+<section id="psi--and-pi-weights" class="level1">
+<h1>Psi- and Pi-Weights</h1>
+<section id="psi-weights-mainfty-representation" class="level2">
+<h2 class="anchored" data-anchor-id="psi-weights-mainfty-representation">Psi-weights (MA<span class="math inline">\((\infty)\)</span> representation)</h2>
+<p>Any causal ARMA has an MA(<span class="math inline">\(\infty\)</span>) representation <span class="math inline">\(X_t = \Psi(B) Z_t = \sum_{j=0}^{\infty} \psi_j Z_{t-j}\)</span>.</p>
+<p>The <span class="math inline">\(\psi\)</span>-weights satisfy <span class="math inline">\(\Psi(B) = \Phi_p(B)^{-1} \Theta_q(B)\)</span>, which gives the recursion:</p>
+<p><span class="math display">\[\psi_j = \theta_j + \phi_1 \psi_{j-1} + \phi_2 \psi_{j-2} + \cdots + \phi_p \psi_{j-p}, \qquad j \geq 0\]</span></p>
+<p>where <span class="math inline">\(\theta_j = 0\)</span> for <span class="math inline">\(j &gt; q\)</span> and <span class="math inline">\(\psi_j = 0\)</span> for <span class="math inline">\(j &lt; 0\)</span>. The <span class="math inline">\(\psi\)</span>-weights measure the impulse response: how a shock at time <span class="math inline">\(t\)</span> propagates forward.</p>
+<p><code>forecast::ARMAtoMA(ar = phi, ma = theta, lag.max = k)</code> returns <span class="math inline">\(\psi_1, \ldots, \psi_k\)</span> directly.</p>
+</section>
+<section id="pi-weights-arinfty-representation" class="level2">
+<h2 class="anchored" data-anchor-id="pi-weights-arinfty-representation">Pi-weights (AR<span class="math inline">\((\infty)\)</span> representation)</h2>
+<p>Any invertible ARMA has an AR(<span class="math inline">\(\infty\)</span>) representation <span class="math inline">\(\Pi(B) X_t = Z_t\)</span>:</p>
+<p><span class="math display">\[X_t = -\sum_{j=1}^{\infty} \pi_j X_{t-j} + Z_t\]</span></p>
+<p>The <span class="math inline">\(\pi\)</span>-weights satisfy <span class="math inline">\(\Pi(B) = \Theta_q(B)^{-1} \Phi_p(B)\)</span>, with recursion:</p>
+<p><span class="math display">\[\pi_j = -\theta_j + \phi_1 \pi_{j-1} + \cdots + \phi_q \pi_{j-q+1}\]</span></p>
+<p>The <span class="math inline">\(\pi\)</span>-weights are what an estimated finite AR model approximates.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="models_files/figure-html/psi-weights-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="summary-acfpacf-identification" class="level1">
+<h1>Summary: ACF/PACF Identification</h1>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>ACF</th>
+<th>PACF</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>WN</td>
+<td>All zero</td>
+<td>All zero</td>
+</tr>
+<tr class="even">
+<td>MA(q)</td>
+<td>Cuts off after lag <span class="math inline">\(q\)</span></td>
+<td>Tails off</td>
+</tr>
+<tr class="odd">
+<td>AR(p)</td>
+<td>Tails off</td>
+<td>Cuts off after lag <span class="math inline">\(p\)</span></td>
+</tr>
+<tr class="even">
+<td>ARMA(p,q)</td>
+<td>Tails off (after lag <span class="math inline">\(q-p\)</span>)</td>
+<td>Tails off (after lag <span class="math inline">\(p-q\)</span>)</td>
+</tr>
+</tbody>
+</table>
+<p>Use this as a first guide. In practice, for ARMA with <span class="math inline">\(p,q &gt; 0\)</span>, both tailing off makes identification hard from the ACF/PACF alone; rely on AIC/BIC over a grid of candidate <span class="math inline">\((p,q)\)</span>.</p>
+<hr>
+</section>
+<section id="sec-appendix-02" class="level1">
+<h1>Appendix: Key Functions</h1>
+<section id="arima.sim-simulating-arma-processes" class="level2">
+<h2 class="anchored" data-anchor-id="arima.sim-simulating-arma-processes"><code>arima.sim()</code>: Simulating ARMA Processes</h2>
+<p>Simulates <span class="math inline">\(T\)</span> observations from any ARMA(p,q) specification. The <code>model</code> argument is a list with named elements <code>ar</code> (AR coefficients) and <code>ma</code> (MA coefficients).</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">99</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># AR(2) with phi = (0.5, -0.3)</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>x_ar2 <span class="ot">&lt;-</span> <span class="fu">arima.sim</span>(<span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="sc">-</span><span class="fl">0.3</span>)), <span class="at">n =</span> <span class="dv">200</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ARMA(1,1)</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>x_arma11 <span class="ot">&lt;-</span> <span class="fu">arima.sim</span>(<span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> <span class="fl">0.7</span>, <span class="at">ma =</span> <span class="fl">0.4</span>), <span class="at">n =</span> <span class="dv">200</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"AR(2) mean:"</span>, <span class="fu">round</span>(<span class="fu">mean</span>(x_ar2), <span class="dv">3</span>), <span class="st">" sd:"</span>, <span class="fu">round</span>(<span class="fu">sd</span>(x_ar2), <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>AR(2) mean: -0.167  sd: 1.187 </code></pre>
+</div>
+</div>
+</section>
+<section id="polyroot-characteristic-polynomial-roots" class="level2">
+<h2 class="anchored" data-anchor-id="polyroot-characteristic-polynomial-roots"><code>polyroot()</code>: Characteristic Polynomial Roots</h2>
+<p>Checks causality (AR roots) and invertibility (MA roots). Input is the coefficient vector of the polynomial in increasing degree order.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># AR(2): phi_1 = 1.2, phi_2 = -0.6</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Polynomial: 1 - 1.2z - (-0.6)z^2 = 1 - 1.2z + 0.6z^2... wait</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># polyroot expects coefficients c(a0, a1, a2,...) for a0 + a1*z + a2*z^2</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># For AR: Phi(z) = 1 - phi1*z - phi2*z^2, so pass c(1, -phi1, -phi2)</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>phi <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">1.2</span>, <span class="sc">-</span><span class="fl">0.6</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>roots <span class="ot">&lt;-</span> <span class="fu">polyroot</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="sc">-</span>phi))</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Modulus of roots:"</span>, <span class="fu">round</span>(<span class="fu">Mod</span>(roots), <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Modulus of roots: 1.291 1.291 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Causal (all |root| &gt; 1):"</span>, <span class="fu">all</span>(<span class="fu">Mod</span>(roots) <span class="sc">&gt;</span> <span class="dv">1</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Causal (all |root| &gt; 1): TRUE </code></pre>
+</div>
+</div>
+</section>
+<section id="armatoma-psi-weights" class="level2">
+<h2 class="anchored" data-anchor-id="armatoma-psi-weights"><code>ARMAtoMA()</code>: Psi-Weights</h2>
+<p>Computes the MA(<span class="math inline">\(\infty\)</span>) representation coefficients <span class="math inline">\(\psi_1, \ldots, \psi_k\)</span> for any ARMA(p,q). Useful for computing forecast error variance <span class="math inline">\(\sigma_Z^2 \sum_{j=0}^{h-1} \psi_j^2\)</span>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ARMA(1,1) with phi = 0.7, theta = 0.4</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>psi <span class="ot">&lt;-</span> <span class="fu">ARMAtoMA</span>(<span class="at">ar =</span> <span class="fl">0.7</span>, <span class="at">ma =</span> <span class="fl">0.4</span>, <span class="at">lag.max =</span> <span class="dv">10</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">c</span>(<span class="at">psi0 =</span> <span class="dv">1</span>, psi), <span class="dv">4</span>)   <span class="co"># psi_0 = 1 always</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  psi0                                                                       
+1.0000 1.1000 0.7700 0.5390 0.3773 0.2641 0.1849 0.1294 0.0906 0.0634 0.0444 </code></pre>
+</div>
+</div>
+</section>
+<section id="arima-vs-arima-fitting" class="level2">
+<h2 class="anchored" data-anchor-id="arima-vs-arima-fitting"><code>Arima()</code> vs <code>arima()</code>: Fitting</h2>
+<p><code>stats::arima()</code> is base R; <code>forecast::Arima()</code> is a wrapper that handles some edge cases better and returns an object compatible with <code>forecast()</code>. Both accept <code>order = c(p, d, q)</code> and <code>seasonal = list(order = c(P, D, Q), period = s)</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">arima.sim</span>(<span class="at">model =</span> <span class="fu">list</span>(<span class="at">ar =</span> <span class="fl">0.6</span>, <span class="at">ma =</span> <span class="sc">-</span><span class="fl">0.3</span>), <span class="at">n =</span> <span class="dv">150</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">&lt;-</span> <span class="fu">Arima</span>(x, <span class="at">order =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>))</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"phi:"</span>, <span class="fu">round</span>(<span class="fu">coef</span>(mod)[<span class="st">"ar1"</span>], <span class="dv">4</span>),</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">" theta:"</span>, <span class="fu">round</span>(<span class="fu">coef</span>(mod)[<span class="st">"ma1"</span>], <span class="dv">4</span>),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">" sigma2:"</span>, <span class="fu">round</span>(mod<span class="sc">$</span>sigma2, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>phi: 0.6644  theta: -0.3569  sigma2: 0.8213 </code></pre>
+</div>
+</div>
+
+
+</section>
+</section>
+
+<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/mtfehl\.github\.io\/finc_metrics\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/mtfehl">
+      <i class="bi bi-github" role="img">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://linkedin.com/in/michael-t-fehl">
+      <i class="bi bi-linkedin" role="img">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="mailto:michaelthomasfehl@gmail.com">
+      <i class="bi bi-envelope" role="img">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

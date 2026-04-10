@@ -1,0 +1,19 @@
+[
+  {
+    "listing": "/index.html",
+    "items": [
+      "/notes/01/intro.html",
+      "/notes/02/models.html",
+      "/notes/03/arima.html",
+      "/notes/04/estimation.html",
+      "/notes/05/forecasting.html",
+      "/notes/06/garch.html",
+      "/notes/07/asymmetric_vol.html",
+      "/notes/08/ts_regression.html",
+      "/notes/09/market_risk.html",
+      "/problem_sets/HW_1_Transformations/01ps_final.html",
+      "/problem_sets/HW_2_Forecasting/hw02.html",
+      "/problem_sets/HW_3_ARCH_GARCH/ARCH_GARCH.html"
+    ]
+  }
+]

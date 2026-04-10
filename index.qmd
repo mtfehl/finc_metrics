@@ -8,9 +8,17 @@ listing:
     contents: 
       - notes/01
       - notes/02
+      - notes/03
+      - notes/04
+      - notes/05
+      - notes/06
+      - notes/07
+      - notes/08
+      - notes/09
     include:
       class-notes: true
     type: grid
+    sort: "date asc"
     grid-columns: 3
     categories: false
     fields: [image, title, reading-time, description]
@@ -24,49 +32,114 @@ listing:
       problem-set: true
     type: grid
     grid-columns: 3
-    sort: "date desc"
+    sort: "date asc"
     categories: false
     sort-ui: false
     filter-ui: false
     fields: [image, title, reading-time, description]
     
-  - id: projects
-    contents: 
-      - projects/Project01
-      #- projects/project02
-    include:
-      project: true
-    type: grid
-    grid-columns: 3
-    sort: "date desc"
-    categories: false
-    sort-ui: false
-    filter-ui: false
-    fields: [image, title, reading-time, description]
+  # - id: projects
+  #   contents: 
+  #     - projects/Project01
+  #     #- projects/project02
+  #   include:
+  #     project: true
+  #   type: grid
+  #   grid-columns: 3
+  #   sort: "date desc"
+  #   categories: false
+  #   sort-ui: false
+  #   filter-ui: false
+  #   fields: [image, title, reading-time, description]
 ---
+
+```{=html}
+<style>
+  /* Nuclear override for Mermaid edge label backgrounds */
+  g.edgeLabel rect, 
+  g.edgeLabel foreignObject, 
+  g.edgeLabel div, 
+  g.edgeLabel span,
+  .labelBkg {
+    fill: transparent !important;
+    background-color: transparent !important;
+    background: transparent !important;
+    stroke: transparent !important;
+  }
+</style>
+```
+
 ```{mermaid}
+%%{init: {'themeVariables': {'edgeLabelBackground':'#00000000'}}}%%
 %%| fig-width: 10
-flowchart LR
-    A(Non-Stationary Data) --> B(Transform Variance)
-    B --> C(ARMA Models)
-    B --> D(GARCH Models)
-    P([Project 01])
+flowchart TD
+    %% -- DATA & STATIONARITY STAGE --
+    Start([Raw Time Series Data]) --> CheckStat{Is Data Stationary?}
+    
+    CheckStat -->|No| N01[Non-Stationary Data & Transformations]
+    N01 -->|Differencing / Logs| CheckStat
+    
+    %% -- MEAN MODELING STAGE --
+    CheckStat -->|Yes| MeanModel{Choose Mean Model}
+    MeanModel -->|Seasonality| N03[Seasonal ARIMA]
+    MeanModel -->|No Seasonality| N02[ARMA Models]
+    MeanModel -->|Exogenous Vars| N08[TS Regression]
 
-    %% Invisible link to nudge P near C/D without drawing a line
-    C ~~~ P
+    N02 --> N04[Estimation, Validation & Selection]
+    N03 --> N04
+    N08 --> N04
 
-    click C "notes/02/models.html" "Go to ARMA Notes"
-    click D "problem_sets/HW_1_Transformations/01ps_final.html" "Go to GARCH Notes"
-    click A "notes/01/intro.html"
-    click P "projects/Project01/project01.html" "Go to Project 01"
+    %% -- VARIANCE / VOLATILITY STAGE --
+    N04 --> VolCheck{Check Residuals: Is Volatility Constant?}
+    
+    VolCheck -->|No ARCH Effects| N05[Forecasting]
+    
+    VolCheck -->|ARCH Effects Present| N06[GARCH Models]
+    N06 --> AsymCheck{Asymmetric Shocks?}
+    AsymCheck -->|Yes| N07[Asymmetric Volatility]
+    AsymCheck -->|No| VolDone((Volatility Modeled))
+    N07 --> VolDone
+    
+    %% -- APPLICATION STAGE --
+    VolDone --> N09[Market Risk]
+    VolDone --> N05
 
-    %% Classes
-    class A,B,C,D nav-node
-    class P project-node
+    %% -- PROBLEM SETS (Mapped via dotted lines) --
+    N01 -.-> PS01([Problem Set 01])
+    N05 -.-> PS02([Problem Set 02])
+    N06 -.-> PS03([Problem Set 03])
+
+    %% -- CLASSES / STYLING --
+    class N01,N02,N03,N04,N05,N06,N07,N08,N09 nav-node
+    class PS01,PS02,PS03 project-node
+
+    %% -- CLICKABLE LINKS --
+    click N01 "notes/01/intro.html" "Go to Non-Stationary Data Transformation Notes"
+    click N02 "notes/02/models.html" "Go to ARMA(p,q) Notes"
+    click N03 "notes/03/arima.html" "Go to Seasonal ARIMA Model Notes"
+    click N04 "notes/04/estimation.html" "Go to Model Estimation, Selection, and Validation Notes"
+    click N05 "notes/05/forecasting.html" "Go to Forecasting Notes"
+    click N06 "notes/06/garch.html" "Go to GARCH(p,q) Notes"
+    click N07 "notes/07/asymmetric_vol.html" "Go to Asymmetric Volatility Notes"
+    click N08 "notes/08/ts_regression.html" "Go to Time Series Regression Notes"
+    click N09 "notes/09/market_risk.html" "Go to Market Risk Notes"
+    click PS01 "problem_sets/HW_1_Transformations/01ps_final.html" "Go to Problem Set 01"
+    click PS02 "problem_sets/HW_2_Forecasting/hw02.html" "Go to Problem Set 02"
+    click PS03 "problem_sets/HW_3_ARCH_GARCH/ARCH_GARCH.html" "Go to Problem Set 03"
 
     %% STYLE THE LINES
-    linkStyle 1 stroke:#ff4d4d,stroke-width:2px;
-    linkStyle 2 stroke:#00cc66,stroke-width:2px;
+
+    %% 1. Neutral / Main Pathway Lines
+    linkStyle 0,1,4,5,6,7,8,9,10,13,14,15,16,17,18 stroke:#8b949e,stroke-width:2px;
+
+    %% 2. "Yes" / Success / Forward Logic
+    linkStyle 3,11 stroke:#05b682,stroke-width:2px;
+
+    %% 3. "No" / Loopback / Warning Logic
+    linkStyle 2,12 stroke:#e06c75,stroke-width:2px;
+
+    %% 4. Problem Set Dotted Links
+    linkStyle 19,20,21 stroke:#8b949e,stroke-width:1.5px,stroke-dasharray:5;
 ```
 
 
@@ -83,8 +156,8 @@ flowchart LR
 :::
 
 
-## Projects
+<!-- ## Projects -->
 
-::: {#projects}
+<!-- ::: {#projects} -->
 
-:::
+<!-- ::: -->
